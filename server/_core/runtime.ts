@@ -43,3 +43,32 @@ export function runInBackground(promise: Promise<unknown>) {
   const guarded = promise.catch(error => console.error("[Background] task failed:", error));
   if (waitUntilImpl) waitUntilImpl(guarded);
 }
+
+/**
+ * Origin of the request being handled (set by the Worker). Used so that
+ * account emails sent while testing on the *.workers.dev address link back to
+ * that address instead of the live domain. Only trusted hosts are kept.
+ */
+let requestOrigin: string | null = null;
+
+export function setRequestOrigin(url: string | null, trustedHosts: string[] = []) {
+  if (!url) {
+    requestOrigin = null;
+    return;
+  }
+  try {
+    const { protocol, host, hostname } = new URL(url);
+    const trusted =
+      hostname.endsWith(".workers.dev") ||
+      hostname === "localhost" ||
+      hostname === "127.0.0.1" ||
+      trustedHosts.some(h => h && (hostname === h || hostname === `www.${h}`));
+    requestOrigin = trusted ? `${protocol}//${host}` : null;
+  } catch {
+    requestOrigin = null;
+  }
+}
+
+export function getRequestOrigin() {
+  return requestOrigin;
+}

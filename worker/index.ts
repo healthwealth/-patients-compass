@@ -10,7 +10,7 @@
 import { createServer } from "node:http";
 import { handleAsNodeRequest } from "cloudflare:node";
 import { createApp } from "../server/app";
-import { setBindings, setWaitUntil, type AppBindings } from "../server/_core/runtime";
+import { setBindings, setRequestOrigin, setWaitUntil, type AppBindings } from "../server/_core/runtime";
 import { handleStorageRequest, STORAGE_PATH_PREFIX } from "../server/_core/storageProxy";
 import { applyRouteSeo } from "../server/routeSeo";
 import { jobsDueAt } from "../server/_core/scheduledJobs";
@@ -67,6 +67,7 @@ export default {
   async fetch(request: Request, env: Env, ctx: Ctx): Promise<Response> {
     prepare(env, ctx);
     const url = new URL(request.url);
+    setRequestOrigin(request.url, [env.CANONICAL_HOST ?? ""]);
 
     // Optional: send www/old hostnames to the main domain.
     if (env.CANONICAL_HOST && url.hostname !== env.CANONICAL_HOST && url.hostname.endsWith(env.CANONICAL_HOST)) {
@@ -89,6 +90,7 @@ export default {
 
   async scheduled(event: ScheduledEvent, env: Env, ctx: Ctx): Promise<void> {
     prepare(env, ctx);
+    setRequestOrigin(null);
     const due = jobsDueAt(new Date(event.scheduledTime));
     console.log(`[Cron] ${new Date(event.scheduledTime).toISOString()} — due: ${due.map(job => job.name).join(", ") || "none"}`);
 

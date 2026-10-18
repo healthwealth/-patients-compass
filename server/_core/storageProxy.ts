@@ -47,24 +47,55 @@ function getBucket(): R2Bucket | undefined {
   return getBindings().STORAGE as R2Bucket | undefined;
 }
 
-/** Copies one file from the legacy Manus site into R2. */
+/** Header marking our own fetches to the old site, so a request can never loop back into itself. */
+const LEGACY_FETCH_HEADER = "x-pc-legacy-fetch";
+
+function legacyOrigins() {
+  return ENV.legacyAssetOrigin
+    .split(",")
+    .map(origin => origin.trim().replace(/\/+$/, ""))
+    .filter(origin => /^https?:\/\//.test(origin));
+}
+
+/** Copies one file from the legacy Manus site into R2 (tries each LEGACY_ASSET_ORIGIN in order). */
 export async function importLegacyAsset(
   key: string
 ): Promise<{ stored: boolean; status: number; contentType?: string; body?: ArrayBuffer }> {
   const bucket = getBucket();
-  const origin = ENV.legacyAssetOrigin;
-  if (!bucket || !origin) return { stored: false, status: 404 };
+  const origins = legacyOrigins();
+  if (!bucket || !origins.length) return { stored: false, status: 404 };
   const path = key.split("/").map(encodeURIComponent).join("/");
-  const upstream = await fetch(`${origin}${STORAGE_PATH_PREFIX}${path}`, { redirect: "follow" });
-  if (!upstream.ok) return { stored: false, status: upstream.status };
-  const body = await upstream.arrayBuffer();
-  const headerType = upstream.headers.get("content-type") ?? "";
-  const contentType =
-    headerType && !headerType.startsWith("binary/") && !headerType.startsWith("application/octet-stream")
-      ? headerType
-      : guessContentType(key);
-  await bucket.put(key, body, { httpMetadata: { contentType } });
-  return { stored: true, status: 200, contentType, body };
+  let lastStatus = 404;
+  for (const origin of origins) {
+    let upstream: Response;
+    try {
+      upstream = await fetch(`${origin}${STORAGE_PATH_PREFIX}${path}`, {
+        redirect: "follow",
+        headers: { [LEGACY_FETCH_HEADER]: "1" },
+      });
+    } catch {
+      lastStatus = 502;
+      continue;
+    }
+    if (!upstream.ok) {
+      lastStatus = upstream.status;
+      continue;
+    }
+    const contentTypeHeader = upstream.headers.get("content-type") ?? "";
+    // A site's HTML page (e.g. an SPA fallback) is not the file we asked for.
+    if (contentTypeHeader.startsWith("text/html")) {
+      lastStatus = 404;
+      continue;
+    }
+    const body = await upstream.arrayBuffer();
+    const contentType =
+      contentTypeHeader && !contentTypeHeader.startsWith("binary/") && !contentTypeHeader.startsWith("application/octet-stream")
+        ? contentTypeHeader
+        : guessContentType(key);
+    await bucket.put(key, body, { httpMetadata: { contentType } });
+    return { stored: true, status: 200, contentType, body };
+  }
+  return { stored: false, status: lastStatus };
 }
 
 /** Handles GET/HEAD `/manus-storage/*` requests in the Worker. */
@@ -118,6 +149,8 @@ export async function handleStorageRequest(request: Request): Promise<Response> 
   }
 
   // Not in R2 yet: try the old Manus site once and keep a copy.
+  // (Skipped for our own legacy fetches so a request can never call itself.)
+  if (request.headers.has(LEGACY_FETCH_HEADER)) return new Response("Not found", { status: 404 });
   try {
     const imported = await importLegacyAsset(key);
     if (imported.stored && imported.body) {
@@ -158,7 +191,7 @@ export async function importMissingLegacyAssets(
       alreadyInR2++;
       continue;
     }
-    if (!ENV.legacyAssetOrigin) {
+    if (!legacyOrigins().length) {
       failed.push(`${key} (LEGACY_ASSET_ORIGIN not set)`);
       continue;
     }

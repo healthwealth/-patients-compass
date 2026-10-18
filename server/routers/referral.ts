@@ -23,14 +23,14 @@ export const referralRouter = router({
         return {
           code: result.code,
           expiresAt: result.expiresAt,
-          referralUrl: `${process.env.VITE_APP_URL || "https://thepatientscompass.com"}?ref=${result.code}`,
+          referralUrl: `${process.env.VITE_APP_URL || process.env.APP_URL || "https://thepatientscompass.com"}?ref=${result.code}`,
         };
       }
 
       return {
         code: referral.referralCode,
         expiresAt: referral.expiresAt,
-        referralUrl: `${process.env.VITE_APP_URL || "https://thepatientscompass.com"}?ref=${referral.referralCode}`,
+        referralUrl: `${process.env.VITE_APP_URL || process.env.APP_URL || "https://thepatientscompass.com"}?ref=${referral.referralCode}`,
       };
     } catch (error) {
       throw new TRPCError({

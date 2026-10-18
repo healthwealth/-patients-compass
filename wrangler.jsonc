@@ -56,7 +56,7 @@
     "CANONICAL_HOST": "thepatientscompass.com",
     "ADMIN_EMAILS": "smkhit@gmail.com",
     "OWNER_EMAIL": "smkhit@gmail.com",
-    "LEGACY_ASSET_ORIGIN": "https://patientsapp-ekwl3omj.manus.space",
+    "LEGACY_ASSET_ORIGIN": "https://patientsapp-ekwl3omj.manus.space,https://thepatientscompass.com",
     "RESEND_SENDER_EMAIL": "noreply@thepatientscompass.com"
   },
   "keep_vars": true
