@@ -37,7 +37,7 @@ function updateChain() {
 describe("certificates.save", () => {
   beforeEach(() => vi.clearAllMocks());
   it("uploads a validated PDF and JPEG preview for the authenticated user", async () => {
-    const values = vi.fn().mockResolvedValue([{ insertId: 7 }]);
+    const values = vi.fn().mockReturnValue({ returning: vi.fn().mockResolvedValue([{ insertId: 7 }]) });
     const db = { insert: vi.fn(() => ({ values })) };
     vi.mocked(getDb).mockResolvedValue(db as never);
     vi.mocked(storagePut).mockResolvedValueOnce({ key: "certificates/42/asset/healthy-habits-certificate.pdf", url: "/manus-storage/certificates/42/asset/certificate.pdf" }).mockResolvedValueOnce({ key: "certificates/42/asset/healthy-habits-certificate.jpg", url: "/manus-storage/certificates/42/asset/certificate.jpg" });

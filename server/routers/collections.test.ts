@@ -34,7 +34,7 @@ describe("collections follow boundaries", () => {
   });
 
   it("accepts managed cover metadata when an administrator creates a collection", async () => {
-    const values = vi.fn().mockResolvedValue([{ insertId: 14 }]);
+    const values = vi.fn().mockReturnValue({ returning: vi.fn().mockResolvedValue([{ insertId: 14 }]) });
     vi.mocked(getDb).mockResolvedValue({ insert: vi.fn(() => ({ values })) } as never);
     const caller = collectionsRouter.createCaller({ user: { id: 1, role: "admin" } } as never);
     await expect(caller.adminCreate({ slug: "cover-collection", title: "Cover collection", description: "A sufficiently long test description.", coverImage: "/manus-storage/cover.png", published: true })).resolves.toEqual({ id: 14 });
@@ -43,7 +43,7 @@ describe("collections follow boundaries", () => {
 
   it("persists category metadata when an administrator uploads a reusable cover", async () => {
     vi.mocked(storagePut).mockResolvedValue({ key: "collection-covers/cover.png", url: "/manus-storage/cover.png" });
-    const values = vi.fn().mockResolvedValue([{ insertId: 17 }]);
+    const values = vi.fn().mockReturnValue({ returning: vi.fn().mockResolvedValue([{ insertId: 17 }]) });
     vi.mocked(getDb).mockResolvedValue({ insert: vi.fn(() => ({ values })) } as never);
     const caller = collectionsRouter.createCaller({ user: { id: 1, role: "admin" } } as never);
     await caller.uploadCoverImage({ fileName: "cover.png", contentType: "image/png", dataBase64: "aGVsbG8=", title: "Visit preparation", altText: "Notes and a compass", category: "appointments" });

@@ -6,6 +6,22 @@ import { users } from "../../drizzle/schema";
 import { eq } from "drizzle-orm";
 import { validateOAuthToken, createOAuthError } from "../_core/oauthValidation";
 import { ENV } from "../_core/env";
+import { isUniqueViolation, uniqueViolationDetail } from "../_core/dbErrors";
+import { sdk } from "../_core/sdk";
+import { createEmailSequence } from "../db.email-sequence";
+import { getSessionCookieOptions } from "../_core/cookies";
+import type { TrpcContext } from "../_core/context";
+import { COOKIE_NAME, ONE_YEAR_MS } from "@shared/const";
+
+/** Issues the site session cookie after a verified Google/Apple sign-in. */
+async function startSocialSession(ctx: TrpcContext, userId: number) {
+  const db = await getDb();
+  if (!db || !userId) return;
+  const [user] = await db.select().from(users).where(eq(users.id, userId)).limit(1);
+  if (!user) return;
+  const sessionToken = await sdk.createSessionToken(user.openId, { name: user.name || "", expiresInMs: ONE_YEAR_MS });
+  ctx.res.cookie(COOKIE_NAME, sessionToken, { ...getSessionCookieOptions(ctx.req), maxAge: ONE_YEAR_MS });
+}
 
 /**
  * Social login router for Google and Apple OAuth integration
@@ -24,7 +40,7 @@ export const socialLoginRouter = router({
         picture: z.string().optional(),
       })
     )
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
       const db = await getDb();
       if (!db) {
         throw new TRPCError({
@@ -39,7 +55,7 @@ export const socialLoginRouter = router({
         const tokenValidation = await validateOAuthToken(
           "google",
           input.token,
-          process.env.VITE_GOOGLE_CLIENT_ID || ""
+          ENV.googleClientId
         );
 
         if (!tokenValidation.valid) {
@@ -71,6 +87,7 @@ export const socialLoginRouter = router({
             })
             .where(eq(users.id, user.id));
 
+          await startSocialSession(ctx, user.id);
           return {
             success: true,
             userId: user.id,
@@ -104,6 +121,7 @@ export const socialLoginRouter = router({
               .where(eq(users.id, user.id));
           }
 
+          await startSocialSession(ctx, user.id);
           return {
             success: true,
             userId: user.id,
@@ -134,6 +152,8 @@ export const socialLoginRouter = router({
 
         const userId = newUser[0]?.id || 0;
 
+        await createEmailSequence(userId).catch(error => console.warn("[SocialLogin] Failed to create email sequence:", error));
+        await startSocialSession(ctx, userId);
         return {
           success: true,
           userId,
@@ -142,14 +162,15 @@ export const socialLoginRouter = router({
         };
       } catch (error: any) {
         // Handle unique constraint violations
-        if (error.code === "ER_DUP_ENTRY") {
-          if (error.message.includes("googleId")) {
+        if (isUniqueViolation(error)) {
+          const detail = uniqueViolationDetail(error);
+          if (detail.includes("googleId")) {
             throw new TRPCError({
               code: "CONFLICT",
               message: "This Google account is already linked to another user",
             });
           }
-          if (error.message.includes("email")) {
+          if (detail.includes("email")) {
             throw new TRPCError({
               code: "CONFLICT",
               message: "This email is already registered",
@@ -181,7 +202,7 @@ export const socialLoginRouter = router({
         token: z.string().min(1, "Apple OAuth token is required"),
       })
     )
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
       const db = await getDb();
       if (!db) {
         throw new TRPCError({
@@ -196,9 +217,9 @@ export const socialLoginRouter = router({
         const tokenValidation = await validateOAuthToken(
           "apple",
           input.token,
-          process.env.VITE_APPLE_SERVICE_ID || "",
-          process.env.VITE_APPLE_TEAM_ID,
-          process.env.VITE_APPLE_KEY_ID
+          ENV.appleServiceId,
+          ENV.appleTeamId,
+          ENV.appleKeyId
         );
 
         if (!tokenValidation.valid) {
@@ -228,6 +249,7 @@ export const socialLoginRouter = router({
             })
             .where(eq(users.id, user.id));
 
+          await startSocialSession(ctx, user.id);
           return {
             success: true,
             userId: user.id,
@@ -259,6 +281,7 @@ export const socialLoginRouter = router({
               .where(eq(users.id, user.id));
           }
 
+          await startSocialSession(ctx, user.id);
           return {
             success: true,
             userId: user.id,
@@ -288,6 +311,8 @@ export const socialLoginRouter = router({
 
         const userId = newUser[0]?.id || 0;
 
+        await createEmailSequence(userId).catch(error => console.warn("[SocialLogin] Failed to create email sequence:", error));
+        await startSocialSession(ctx, userId);
         return {
           success: true,
           userId,
@@ -296,14 +321,15 @@ export const socialLoginRouter = router({
         };
       } catch (error: any) {
         // Handle unique constraint violations
-        if (error.code === "ER_DUP_ENTRY") {
-          if (error.message.includes("appleId")) {
+        if (isUniqueViolation(error)) {
+          const detail = uniqueViolationDetail(error);
+          if (detail.includes("appleId")) {
             throw new TRPCError({
               code: "CONFLICT",
               message: "This Apple account is already linked to another user",
             });
           }
-          if (error.message.includes("email")) {
+          if (detail.includes("email")) {
             throw new TRPCError({
               code: "CONFLICT",
               message: "This email is already registered",

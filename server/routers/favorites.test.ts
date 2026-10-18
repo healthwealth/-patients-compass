@@ -26,7 +26,7 @@ describe("favorites.save", () => {
       select: vi.fn()
         .mockReturnValueOnce(resultChain([{ id: 8 }]))
         .mockReturnValueOnce(resultChain([])),
-      insert: vi.fn(() => ({ values: vi.fn().mockResolvedValue([{ insertId: 17 }]) })),
+      insert: vi.fn(() => ({ values: vi.fn().mockReturnValue({ returning: vi.fn().mockResolvedValue([{ insertId: 17 }]) }) })),
     };
     vi.mocked(getDb).mockResolvedValue(db as never);
     const caller = favoritesRouter.createCaller({ user: { id: 42 } } as never);

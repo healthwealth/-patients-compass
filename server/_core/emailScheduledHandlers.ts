@@ -1,5 +1,7 @@
 import type { Request, Response } from "express";
 import { getDb } from "../db";
+import { eq } from "drizzle-orm";
+import { users } from "../../drizzle/schema";
 import * as emailSeqDb from "../db.email-sequence";
 import {
   sendWelcomeEmail1,
@@ -36,10 +38,10 @@ export async function handleScheduledEmail1(req: Request, res: Response) {
         // Get user info
         const userResult = await db
           .select()
-          .from(require("../drizzle/schema").users)
+          .from(users)
           .where(
-            require("drizzle-orm").eq(
-              require("../drizzle/schema").users.id,
+            eq(
+              users.id,
               seq.userId,
             ),
           )
@@ -115,10 +117,10 @@ export async function handleScheduledEmail2(req: Request, res: Response) {
       try {
         const userResult = await db
           .select()
-          .from(require("../drizzle/schema").users)
+          .from(users)
           .where(
-            require("drizzle-orm").eq(
-              require("../drizzle/schema").users.id,
+            eq(
+              users.id,
               seq.userId,
             ),
           )
@@ -192,10 +194,10 @@ export async function handleScheduledEmail3(req: Request, res: Response) {
       try {
         const userResult = await db
           .select()
-          .from(require("../drizzle/schema").users)
+          .from(users)
           .where(
-            require("drizzle-orm").eq(
-              require("../drizzle/schema").users.id,
+            eq(
+              users.id,
               seq.userId,
             ),
           )

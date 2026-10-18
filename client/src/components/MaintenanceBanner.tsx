@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { publicConfig } from "@/lib/publicConfig";
 import { X, Bell, CheckCircle2, Loader2, Info, Users } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 
@@ -7,7 +8,7 @@ const DISMISSED_KEY = "maintenance-banner-dismissed-v1";
 // ─── Feature flag ─────────────────────────────────────────────────────────────
 // Keep the banner hidden by default. Set VITE_SHOW_MAINTENANCE_BANNER=true only
 // for a verified, time-bound account-access update.
-const SHOW_BANNER = import.meta.env.VITE_SHOW_MAINTENANCE_BANNER === "true";
+const SHOW_BANNER = publicConfig.showMaintenanceBanner;
 
 export default function MaintenanceBanner() {
   const [dismissed, setDismissed] = useState(() => {

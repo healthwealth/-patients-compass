@@ -2,6 +2,7 @@ import { z } from "zod";
 import { protectedProcedure, publicProcedure, router } from "../_core/trpc";
 import { TRPCError } from "@trpc/server";
 import bcrypt from "bcryptjs";
+import { runInBackground } from "../_core/runtime";
 import { getDb } from "../db";
 import { users } from "../../drizzle/schema";
 import { eq } from "drizzle-orm";
@@ -86,7 +87,7 @@ export const emailAuthRouter = router({
         loginMethod: "email",
       });
 
-      if (process.env.NODE_ENV !== "test") void sendVerificationEmail(input.email, input.name, verificationToken);
+      if (process.env.NODE_ENV !== "test") runInBackground(sendVerificationEmail(input.email, input.name, verificationToken));
 
       return {
         success: true,
@@ -206,7 +207,7 @@ export const emailAuthRouter = router({
           emailLoginToken: hashResetToken(token),
           emailLoginTokenExpiry: new Date(Date.now() + 15 * 60 * 1000),
         }).where(eq(users.id, userList[0].id));
-        if (process.env.NODE_ENV !== "test") void sendEmailLoginLink(userList[0].email, userList[0].name || "there", token);
+        if (process.env.NODE_ENV !== "test") runInBackground(sendEmailLoginLink(userList[0].email, userList[0].name || "there", token));
       }
       return { success: true, message: "If an account exists with this email, a secure sign-in link has been sent." };
     }),
@@ -225,7 +226,7 @@ export const emailAuthRouter = router({
       const deviceHash = crypto.createHash("sha256").update(deviceSource).digest("hex");
       const isNewDevice = user.lastPasswordlessDeviceHash !== deviceHash;
       await db.update(users).set({ emailLoginToken: null, emailLoginTokenExpiry: null, lastSignedIn: new Date(), lastPasswordlessDeviceHash: deviceHash, lastPasswordlessLoginAt: new Date() }).where(eq(users.id, user.id));
-      if (isNewDevice && user.email && process.env.NODE_ENV !== "test") void sendNewDeviceLoginEmail(user.email, user.name || "there");
+      if (isNewDevice && user.email && process.env.NODE_ENV !== "test") runInBackground(sendNewDeviceLoginEmail(user.email, user.name || "there"));
       const sessionDuration = 8 * 60 * 60 * 1000;
       const sessionToken = await sdk.createSessionToken(user.openId, { name: user.name || "", expiresInMs: sessionDuration });
       ctx.res.cookie(COOKIE_NAME, sessionToken, { ...getSessionCookieOptions(ctx.req), maxAge: sessionDuration });
@@ -269,7 +270,7 @@ export const emailAuthRouter = router({
         .set({ resetToken: hashResetToken(resetToken), resetTokenExpiry })
         .where(eq(users.id, user.id));
 
-      if (process.env.NODE_ENV !== "test") void sendPasswordResetEmail(input.email, user.name || "there", resetToken);
+      if (process.env.NODE_ENV !== "test") runInBackground(sendPasswordResetEmail(input.email, user.name || "there", resetToken));
       return {
         success: true,
         message: "If an account exists with this email, a reset link has been sent.",
@@ -328,7 +329,7 @@ export const emailAuthRouter = router({
         })
         .where(eq(users.id, user.id));
 
-      if (user.email && process.env.NODE_ENV !== "test") void sendPasswordChangedEmail(user.email, user.name || "there");
+      if (user.email && process.env.NODE_ENV !== "test") runInBackground(sendPasswordChangedEmail(user.email, user.name || "there"));
 
       return {
         success: true,
@@ -418,7 +419,7 @@ export const emailAuthRouter = router({
         .set({ verificationToken })
         .where(eq(users.id, user.id));
 
-      if (user.email && process.env.NODE_ENV !== "test") void sendVerificationEmail(user.email, user.name || "there", verificationToken);
+      if (user.email && process.env.NODE_ENV !== "test") runInBackground(sendVerificationEmail(user.email, user.name || "there", verificationToken));
       return {
         success: true,
         message: "Verification email sent. Please check your inbox.",

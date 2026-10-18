@@ -1,5 +1,5 @@
 import mammoth from "mammoth";
-import { PDFParse } from "pdf-parse";
+import { extractText, getDocumentProxy } from "unpdf";
 
 export const supportedDocumentTypes = [
   "text/plain",
@@ -26,14 +26,18 @@ export async function extractDocumentText(input: {
   if (input.contentType === "text/plain") {
     text = buffer.toString("utf8");
   } else if (input.contentType === "application/vnd.openxmlformats-officedocument.wordprocessingml.document") {
-    const result = await mammoth.extractRawText({ buffer });
+    // Node builds of mammoth read `buffer`; the Workers (browser) build reads `arrayBuffer`.
+    const arrayBuffer = buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength);
+    const result = await mammoth.extractRawText({ buffer, arrayBuffer } as Parameters<typeof mammoth.extractRawText>[0]);
     text = result.value;
   } else {
-    const parser = new PDFParse({ data: buffer });
+    // unpdf bundles a serverless build of PDF.js that runs on Cloudflare Workers.
+    const pdf = await getDocumentProxy(new Uint8Array(buffer));
     try {
-      text = (await parser.getText()).text;
+      const result = await extractText(pdf, { mergePages: true });
+      text = Array.isArray(result.text) ? result.text.join("\n") : result.text;
     } finally {
-      await parser.destroy();
+      await (pdf as unknown as { destroy?: () => Promise<void> }).destroy?.().catch(() => undefined);
     }
   }
 

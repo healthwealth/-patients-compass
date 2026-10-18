@@ -1,9 +1,7 @@
 import { TRPCError } from "@trpc/server";
 import { protectedProcedure, publicProcedure, router } from "../_core/trpc";
 import * as emailSeqDb from "../db.email-sequence";
-import { createHeartbeatJob } from "../_core/heartbeat";
-import { parse as parseCookie } from "cookie";
-import { COOKIE_NAME } from "@shared/const";
+import { SCHEDULED_JOBS } from "../_core/scheduledJobs";
 import { handleScheduledEmail1, handleScheduledEmail2, handleScheduledEmail3 } from "../_core/emailScheduledHandlers";
 import { z } from "zod";
 
@@ -90,80 +88,17 @@ export const emailSequenceRouter = router({
       });
     }
 
-    try {
-      const sessionToken = parseCookie(ctx.req.headers.cookie ?? "")[
-        COOKIE_NAME
-      ] ?? "";
-
-      if (!sessionToken) {
-        throw new TRPCError({
-          code: "UNAUTHORIZED",
-          message: "Session token not found",
-        });
-      }
-
-      // Create three cron jobs for the three emails
-      // Email 1: Every day at 9:00 UTC (for users created that day)
-      const job1 = await createHeartbeatJob(
-        {
-          name: "welcome-email-1",
-          cron: "0 9 * * * *", // Daily at 9:00 UTC
-          path: "/api/scheduled/email-1",
-          description: "Send welcome email 1 (Day 0) to new users",
-        },
-        sessionToken,
-      );
-
-      // Email 2: Every day at 10:00 UTC (for users created 2 days ago)
-      const job2 = await createHeartbeatJob(
-        {
-          name: "welcome-email-2",
-          cron: "0 10 * * * *", // Daily at 10:00 UTC
-          path: "/api/scheduled/email-2",
-          description: "Send welcome email 2 (Day 2) to users",
-        },
-        sessionToken,
-      );
-
-      // Email 3: Every day at 11:00 UTC (for users created 5 days ago)
-      const job3 = await createHeartbeatJob(
-        {
-          name: "welcome-email-3",
-          cron: "0 11 * * * *", // Daily at 11:00 UTC
-          path: "/api/scheduled/email-3",
-          description: "Send welcome email 3 (Day 5) to users",
-        },
-        sessionToken,
-      );
-
-      return {
-        success: true,
-        message: "Scheduled email jobs created",
-        jobs: [
-          {
-            name: "welcome-email-1",
-            taskUid: job1.taskUid,
-            nextExecution: job1.nextExecutionAt,
-          },
-          {
-            name: "welcome-email-2",
-            taskUid: job2.taskUid,
-            nextExecution: job2.nextExecutionAt,
-          },
-          {
-            name: "welcome-email-3",
-            taskUid: job3.taskUid,
-            nextExecution: job3.nextExecutionAt,
-          },
-        ],
-      };
-    } catch (error) {
-      console.error("[EmailSequence] Failed to setup scheduled emails:", error);
-      throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
-        message: "Failed to setup scheduled emails",
-      });
-    }
+    // On Cloudflare the schedules are built into the Worker (Cron Trigger in
+    // wrangler.jsonc, dispatched by worker/cron.ts), so there is nothing to create.
+    return {
+      success: true,
+      message: "Scheduled emails run automatically from the Cloudflare Cron Trigger",
+      jobs: SCHEDULED_JOBS.filter(job => job.path.startsWith("/api/scheduled/email-")).map(job => ({
+        name: job.name,
+        taskUid: `cloudflare-cron:${job.name}`,
+        nextExecution: null as string | null,
+      })),
+    };
   }),
 
   /**

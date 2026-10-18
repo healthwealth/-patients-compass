@@ -51,17 +51,15 @@ describe("Licensed Care Connections content boundaries", () => {
 
   it("supports direct auth URL variants instead of relying on in-app navigation", () => {
     const app = projectFile("client/src/App.tsx");
-    const server = projectFile("server/_core/vite.ts");
+    const wrangler = projectFile("wrangler.jsonc");
     const signIn = projectFile("client/src/pages/SignIn.tsx");
     expect(app).toContain('<Route path="/signin" component={SignIn} />');
     expect(app).toContain('<Route path="/signup" component={Signup} />');
     expect(app).toContain('<Route path="/sign-in" component={SignIn} />');
     expect(app).toContain('<Route path="/sign-up" component={Signup} />');
-    expect(server).toContain('app.get("*"');
-    expect(server).toContain('path.resolve(distPath, "index.html")');
+    expect(wrangler).toContain('"not_found_handling": "single-page-application"');
     expect(signIn).toContain("Welcome back to Patients Compass");
-    expect(signIn).toContain("Continue with Patients Compass");
-    expect(signIn).toContain("getLoginUrl(returnPath, rememberMe)");
+    expect(signIn).toContain("<GoogleSignInButton");
     expect(signIn).not.toContain("Sign-In Temporarily Unavailable");
   });
 
@@ -72,7 +70,7 @@ describe("Licensed Care Connections content boundaries", () => {
     const appSource = projectFile("client/src/App.tsx");
     const authError = projectFile("client/src/pages/AuthError.tsx");
     const authRouter = projectFile("server/routers/auth.ts");
-    const oauth = projectFile("server/_core/oauth.ts");
+    const social = projectFile("server/routers/socialLogin.ts");
     const authHook = projectFile("client/src/_core/hooks/useAuth.ts");
     const timeout = projectFile("client/src/components/SessionTimeoutWarning.tsx");
     const resetPage = projectFile("client/src/pages/ResetPassword.tsx");
@@ -84,15 +82,9 @@ describe("Licensed Care Connections content boundaries", () => {
     expect(signIn).toContain("Forgot password?");
     expect(signIn).toContain("Resend verification");
     expect(signIn).toContain("Remember me on this device");
-    expect(loginHelper).toContain("/login?");
-    expect(loginHelper).toContain("app_id: appId");
-    expect(loginHelper).toContain("redirect_url");
-    expect(loginHelper).not.toContain("/oauth/authorize");
-    expect(signIn).toContain("OAuth progress");
-    expect(signIn).toContain("Preparing secure sign-in");
+    expect(loginHelper).toContain("/signin?returnPath=");
+    expect(loginHelper).not.toContain("VITE_OAUTH_PORTAL_URL");
     expect(signIn).toContain("Remember me on this device");
-    expect(signIn).toContain("patients-compass-oauth-pending");
-    expect(signIn).toContain("patients-compass-oauth-remember-me");
     expect(signIn).toContain("Saved for up to one year after successful sign-in");
     expect(signIn).toContain("taking longer than expected");
     expect(signIn).toContain("Send email sign-in link");
@@ -101,7 +93,7 @@ describe("Licensed Care Connections content boundaries", () => {
     expect(signIn).toContain("emailLinkCooldown");
     expect(signIn).toContain("Resend link in");
     expect(signIn).toContain("animate-in fade-in slide-in-from-top-2");
-    expect(signIn).toContain("Back to OAuth");
+    expect(signIn).toContain("Back to sign-in options");
     expect(signIn).toContain("Email sent. Check your inbox.");
     expect(signIn).toContain("active:scale-[0.98]");
     expect(signIn).toContain("emailFallbackInputRef");
@@ -121,8 +113,7 @@ describe("Licensed Care Connections content boundaries", () => {
     expect(signIn).toContain("status === \"verified\"");
     expect(authRouter).toContain("requestPasswordReset");
     expect(authRouter).toContain("rememberMe");
-    expect(oauth).toContain("parseRememberMe");
-    expect(oauth).toContain("/auth/error?reason=provider");
+    expect(social).toContain("startSocialSession");
     expect(authHook).toContain("sessionWarning");
     expect(timeout).toContain("Your session will expire soon");
     expect(app).toContain('<Route path="/reset-password" component={ResetPassword} />');

@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { publicConfig } from "@/lib/publicConfig";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Cookie, X } from "lucide-react";
@@ -33,14 +34,14 @@ export default function CookieConsent() {
       return () => clearTimeout(timer);
     }
     if (stored === "accepted") {
-      initializeGTM(import.meta.env.VITE_GTM_CONTAINER_ID ?? "");
+      initializeGTM(publicConfig.gtmContainerId);
     }
     setConsent(stored);
   }, []);
 
   const handleAccept = () => {
     localStorage.setItem(CONSENT_KEY, "accepted");
-    initializeGTM(import.meta.env.VITE_GTM_CONTAINER_ID ?? "");
+    initializeGTM(publicConfig.gtmContainerId);
     trackEvent("cookie_consent_experiment", {
       copy_variant: copyVariant,
       decision: "accepted",

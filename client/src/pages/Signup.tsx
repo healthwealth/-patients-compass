@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { publicConfig } from "@/lib/publicConfig";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -38,9 +39,9 @@ export default function Signup() {
   const [feedbackPulse, setFeedbackPulse] = useState<string | null>(null);
   const googleButtonRef = useRef<HTMLDivElement>(null);
   const appleConfigured = Boolean(
-    import.meta.env.VITE_APPLE_SERVICE_ID &&
-      import.meta.env.VITE_APPLE_TEAM_ID &&
-      import.meta.env.VITE_APPLE_KEY_ID
+    publicConfig.appleServiceId &&
+      publicConfig.appleTeamId &&
+      publicConfig.appleKeyId
   );
 
   const googleCallback = trpc.socialLogin.googleCallback.useMutation({
@@ -76,7 +77,7 @@ export default function Signup() {
     const initializeGoogleSignIn = () => {
       if (typeof window !== "undefined" && (window as any).google) {
         (window as any).google.accounts.id.initialize({
-          client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID || "",
+          client_id: publicConfig.googleClientId,
           callback: async (response: any) => {
             if (response.credential) {
               try {
@@ -117,9 +118,9 @@ export default function Signup() {
     const initializeAppleSignIn = () => {
       if (typeof window !== "undefined" && (window as any).AppleID) {
         (window as any).AppleID.auth.init({
-          clientId: import.meta.env.VITE_APPLE_SERVICE_ID || "",
-          teamId: import.meta.env.VITE_APPLE_TEAM_ID || "",
-          keyId: import.meta.env.VITE_APPLE_KEY_ID || "",
+          clientId: publicConfig.appleServiceId,
+          teamId: publicConfig.appleTeamId,
+          keyId: publicConfig.appleKeyId,
           redirectURI: `${window.location.origin}/auth/apple/callback`,
           usePopup: true,
         });

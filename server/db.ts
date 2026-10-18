@@ -3,6 +3,7 @@ import { drizzle } from "drizzle-orm/d1";
 import { InsertUser, users, labReports, emailSubscribers, biomarkerReadings, healthNotes, wellnessPlans, userActivities } from "../drizzle/schema";
 import { ENV } from './_core/env';
 import { getBindings, type D1Database } from "./_core/runtime";
+import { isUniqueViolation } from "./_core/dbErrors";
 
 let _db: ReturnType<typeof drizzle> | null = null;
 let _dbBinding: D1Database | null = null;
@@ -197,7 +198,7 @@ export async function subscribeEmail(data: {
     });
     return { success: true, alreadySubscribed: false };
   } catch (err: any) {
-    if (err?.code === "ER_DUP_ENTRY") {
+    if (isUniqueViolation(err)) {
       return { success: true, alreadySubscribed: true };
     }
     throw err;

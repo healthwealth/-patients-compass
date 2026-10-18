@@ -1,0 +1,63 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  // The Patient's Compass — Cloudflare Worker (replaces Manus hosting)
+  "name": "patients-compass",
+  "main": "worker/index.ts",
+  "compatibility_date": "2026-10-01",
+  "compatibility_flags": ["nodejs_compat"],
+
+  // iconv-lite (used by Express's body parser) does not bundle for Workers; use a small shim.
+  "alias": {
+    "iconv-lite": "./worker/shims/iconv-lite.js"
+  },
+
+  // Built React site. Everything except the paths below is served straight
+  // from these files; unknown paths fall back to index.html (client routing).
+  "assets": {
+    "directory": "dist/public",
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application",
+    "run_worker_first": ["/api/*", "/manus-storage/*", "/sitemap.xml", "/super-kids"]
+  },
+
+  // Database (replaces Manus MySQL). Created automatically on first deploy.
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "patients-compass-db",
+      "migrations_dir": "migrations"
+    }
+  ],
+
+  // Images, PDFs, videos and uploads (replaces Manus storage). Created automatically on first deploy.
+  "r2_buckets": [
+    {
+      "binding": "STORAGE",
+      "bucket_name": "patients-compass-files"
+    }
+  ],
+
+  // Hourly: scheduled emails, daily analytics, and copying files from the old Manus site.
+  "triggers": {
+    "crons": ["0 * * * *"]
+  },
+
+  "observability": {
+    "enabled": true
+  },
+
+  // Non-secret settings (editable later in Cloudflare → Workers → patients-compass → Settings → Variables).
+  // Secrets (API keys) are NOT kept here — see CLOUDFLARE_DEPLOY_GUIDE.md.
+  // ANTHROPIC_MODEL defaults to claude-sonnet-5-5; override it in the dashboard if needed.
+  "vars": {
+    "NODE_ENV": "production",
+    "PUBLIC_SITE_URL": "https://thepatientscompass.com",
+    "APP_URL": "https://thepatientscompass.com",
+    "CANONICAL_HOST": "thepatientscompass.com",
+    "ADMIN_EMAILS": "smkhit@gmail.com",
+    "OWNER_EMAIL": "smkhit@gmail.com",
+    "LEGACY_ASSET_ORIGIN": "https://patientsapp-ekwl3omj.manus.space",
+    "RESEND_SENDER_EMAIL": "noreply@thepatientscompass.com"
+  },
+  "keep_vars": true
+}

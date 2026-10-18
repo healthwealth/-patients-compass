@@ -6,7 +6,7 @@ import { users } from "../../drizzle/schema";
 import { ENV } from "../_core/env";
 
 function getStripe(): Stripe {
-  return new Stripe(ENV.stripeSecretKey, { apiVersion: "2026-04-22.dahlia" });
+  return new Stripe(ENV.stripeSecretKey, { apiVersion: "2026-04-22.dahlia", httpClient: Stripe.createFetchHttpClient() });
 }
 
 /**
@@ -52,7 +52,7 @@ export async function handleStripeWebhook(req: Request, res: Response) {
   // Verify the event signature using the raw body
   let event: Stripe.Event;
   try {
-    event = stripe.webhooks.constructEvent(req.body, sig, ENV.stripeWebhookSecret);
+    event = await stripe.webhooks.constructEventAsync(req.body, sig, ENV.stripeWebhookSecret);
   } catch (err) {
     console.error("[Webhook] Signature verification failed:", err);
     return res.status(400).json({ error: "Webhook signature verification failed" });

@@ -12,7 +12,7 @@ function getStripe() {
   if (!ENV.stripeSecretKey) {
     throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Stripe not configured" });
   }
-  return new Stripe(ENV.stripeSecretKey, { apiVersion: "2026-04-22.dahlia" });
+  return new Stripe(ENV.stripeSecretKey, { apiVersion: "2026-04-22.dahlia", httpClient: Stripe.createFetchHttpClient() });
 }
 
 export const subscriptionRouter = router({

@@ -23,7 +23,9 @@ describe("VITE_SHOW_MAINTENANCE_BANNER env flag", () => {
     );
 
     expect(source).toContain(
-      'const SHOW_BANNER = import.meta.env.VITE_SHOW_MAINTENANCE_BANNER === "true";'
+      'const SHOW_BANNER = publicConfig.showMaintenanceBanner;'
     );
+    const config = readFileSync(resolve(process.cwd(), "client/src/lib/publicConfig.ts"), "utf8");
+    expect(config).toContain('import.meta.env.VITE_SHOW_MAINTENANCE_BANNER === "true"');
   });
 });

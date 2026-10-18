@@ -136,40 +136,6 @@ const normalizeContentPart = (
   throw new Error("Unsupported message content part");
 };
 
-const normalizeMessage = (message: Message) => {
-  const { role, name, tool_call_id } = message;
-
-  if (role === "tool" || role === "function") {
-    const content = ensureArray(message.content)
-      .map(part => (typeof part === "string" ? part : JSON.stringify(part)))
-      .join("\n");
-
-    return {
-      role,
-      name,
-      tool_call_id,
-      content,
-    };
-  }
-
-  const contentParts = ensureArray(message.content).map(normalizeContentPart);
-
-  // If there's only text content, collapse to a single string for compatibility
-  if (contentParts.length === 1 && contentParts[0].type === "text") {
-    return {
-      role,
-      name,
-      content: contentParts[0].text,
-    };
-  }
-
-  return {
-    role,
-    name,
-    content: contentParts,
-  };
-};
-
 const normalizeToolChoice = (
   toolChoice: ToolChoice | undefined,
   tools: Tool[] | undefined
@@ -207,17 +173,6 @@ const normalizeToolChoice = (
   }
 
   return toolChoice;
-};
-
-const resolveApiUrl = () =>
-  ENV.forgeApiUrl && ENV.forgeApiUrl.trim().length > 0
-    ? `${ENV.forgeApiUrl.replace(/\/$/, "")}/v1/chat/completions`
-    : "https://forge.manus.im/v1/chat/completions";
-
-const assertApiKey = () => {
-  if (!ENV.forgeApiKey) {
-    throw new Error("OPENAI_API_KEY is not configured");
-  }
 };
 
 const normalizeResponseFormat = ({
@@ -265,68 +220,213 @@ const normalizeResponseFormat = ({
   };
 };
 
-export async function invokeLLM(params: InvokeParams): Promise<InvokeResult> {
-  assertApiKey();
+// ─── Anthropic Claude transport ──────────────────────────────────────────────
+// Replaces the Manus built-in LLM. Callers keep using the OpenAI-style
+// `invokeLLM` contract above; requests are translated to the Anthropic
+// Messages API and responses are translated back.
 
-  const {
-    messages,
-    tools,
-    toolChoice,
-    tool_choice,
-    outputSchema,
-    output_schema,
-    responseFormat,
-    response_format,
-  } = params;
+const ANTHROPIC_VERSION = "2023-06-01";
+const DEFAULT_MAX_TOKENS = 16000;
+const STRUCTURED_TOOL_PREFIX = "structured_output_";
 
-  const payload: Record<string, unknown> = {
-    model: "gemini-2.5-flash",
-    messages: messages.map(normalizeMessage),
+type AnthropicBlock = Record<string, unknown>;
+type AnthropicMessage = { role: "user" | "assistant"; content: AnthropicBlock[] };
+
+const textOf = (content: MessageContent | MessageContent[]): string =>
+  ensureArray(content)
+    .map(part => (typeof part === "string" ? part : part.type === "text" ? part.text : ""))
+    .filter(Boolean)
+    .join("\n");
+
+function toAnthropicBlock(part: TextContent | ImageContent | FileContent): AnthropicBlock | null {
+  if (part.type === "text") return part.text ? { type: "text", text: part.text } : null;
+  if (part.type === "image_url") {
+    const url = part.image_url.url;
+    const dataUrl = /^data:([^;]+);base64,([\s\S]*)$/.exec(url);
+    if (dataUrl) return { type: "image", source: { type: "base64", media_type: dataUrl[1], data: dataUrl[2] } };
+    return { type: "image", source: { type: "url", url } };
+  }
+  if (part.type === "file_url") {
+    const url = part.file_url.url;
+    const dataUrl = /^data:([^;]+);base64,([\s\S]*)$/.exec(url);
+    if (dataUrl) return { type: "document", source: { type: "base64", media_type: dataUrl[1], data: dataUrl[2] } };
+    if (part.file_url.mime_type === "application/pdf" || /\.pdf($|\?)/i.test(url)) {
+      return { type: "document", source: { type: "url", url } };
+    }
+    return { type: "text", text: `[Attached file: ${url}]` };
+  }
+  return null;
+}
+
+function toAnthropicMessages(messages: Message[]): { system: string; messages: AnthropicMessage[] } {
+  const systemParts: string[] = [];
+  const out: AnthropicMessage[] = [];
+
+  const push = (role: "user" | "assistant", blocks: AnthropicBlock[]) => {
+    if (!blocks.length) return;
+    const last = out[out.length - 1];
+    if (last && last.role === role) last.content.push(...blocks);
+    else out.push({ role, content: blocks });
   };
 
-  if (tools && tools.length > 0) {
-    payload.tools = tools;
+  for (const message of messages) {
+    if (message.role === "system") {
+      const text = textOf(message.content);
+      if (text) systemParts.push(text);
+      continue;
+    }
+    if (message.role === "tool" || message.role === "function") {
+      push("user", [{ type: "tool_result", tool_use_id: message.tool_call_id ?? message.name ?? "tool", content: textOf(message.content) || "(empty)" }]);
+      continue;
+    }
+    const blocks = ensureArray(message.content)
+      .map(normalizeContentPart)
+      .map(toAnthropicBlock)
+      .filter((block): block is AnthropicBlock => block !== null);
+    const toolCalls = (message as Message & { tool_calls?: ToolCall[] }).tool_calls;
+    if (message.role === "assistant" && toolCalls?.length) {
+      for (const call of toolCalls) {
+        let input: unknown = {};
+        try { input = JSON.parse(call.function.arguments || "{}"); } catch { input = {}; }
+        blocks.push({ type: "tool_use", id: call.id, name: call.function.name, input });
+      }
+    }
+    push(message.role === "assistant" ? "assistant" : "user", blocks);
   }
 
-  const normalizedToolChoice = normalizeToolChoice(
-    toolChoice || tool_choice,
-    tools
-  );
-  if (normalizedToolChoice) {
-    payload.tool_choice = normalizedToolChoice;
+  // The Messages API expects the conversation to open with a user turn.
+  if (!out.length || out[0].role !== "user") {
+    out.unshift({ role: "user", content: [{ type: "text", text: "Hello." }] });
+  }
+  return { system: systemParts.join("\n\n"), messages: out };
+}
+
+const stripCodeFences = (value: string) =>
+  value.trim().replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "").trim();
+
+async function postToAnthropic(payload: Record<string, unknown>, apiKey: string) {
+  const delays = [0, 1500, 4000];
+  let lastError = "";
+  for (const delay of delays) {
+    if (delay) await new Promise(resolve => setTimeout(resolve, delay));
+    const response = await fetch(`${ENV.anthropicBaseUrl}/v1/messages`, {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        "x-api-key": apiKey,
+        "anthropic-version": ANTHROPIC_VERSION,
+      },
+      body: JSON.stringify(payload),
+    });
+    if (response.ok) return (await response.json()) as Record<string, any>;
+    lastError = `${response.status} ${response.statusText} – ${await response.text().catch(() => "")}`;
+    // Retry only on rate limits, overload and transient server errors.
+    if (![429, 500, 502, 503, 504, 529].includes(response.status)) break;
+  }
+  throw new Error(`LLM invoke failed: ${lastError}`);
+}
+
+export async function invokeLLM(params: InvokeParams): Promise<InvokeResult> {
+  const apiKey = ENV.anthropicApiKey;
+  if (!apiKey) {
+    throw new Error("ANTHROPIC_API_KEY is not configured");
   }
 
-  payload.max_tokens = 32768
-  payload.thinking = {
-    "budget_tokens": 128
+  const { system, messages } = toAnthropicMessages(params.messages);
+  const responseFormat = normalizeResponseFormat(params);
+  const payload: Record<string, unknown> = {
+    model: ENV.anthropicModel,
+    max_tokens: params.maxTokens ?? params.max_tokens ?? DEFAULT_MAX_TOKENS,
+    messages,
+  };
+
+  let systemPrompt = system;
+  let structuredToolName: string | null = null;
+  const anthropicTools: AnthropicBlock[] = [];
+
+  if (params.tools?.length) {
+    for (const tool of params.tools) {
+      anthropicTools.push({
+        name: tool.function.name,
+        description: tool.function.description ?? "",
+        input_schema: tool.function.parameters ?? { type: "object", properties: {} },
+      });
+    }
+    const choice = normalizeToolChoice(params.toolChoice || params.tool_choice, params.tools);
+    if (choice === "none") payload.tool_choice = { type: "none" };
+    else if (choice === "auto") payload.tool_choice = { type: "auto" };
+    else if (choice) payload.tool_choice = { type: "tool", name: choice.function.name };
   }
 
-  const normalizedResponseFormat = normalizeResponseFormat({
-    responseFormat,
-    response_format,
-    outputSchema,
-    output_schema,
-  });
-
-  if (normalizedResponseFormat) {
-    payload.response_format = normalizedResponseFormat;
+  if (responseFormat?.type === "json_schema") {
+    // Structured output: force a single tool whose input schema is the requested schema.
+    structuredToolName = `${STRUCTURED_TOOL_PREFIX}${responseFormat.json_schema.name}`.replace(/[^a-zA-Z0-9_-]/g, "_").slice(0, 64);
+    anthropicTools.push({
+      name: structuredToolName,
+      description: "Return the final answer as structured data matching this schema exactly.",
+      input_schema: responseFormat.json_schema.schema,
+    });
+    payload.tool_choice = { type: "tool", name: structuredToolName };
+  } else if (responseFormat?.type === "json_object") {
+    systemPrompt = `${systemPrompt}\n\nRespond with a single valid JSON object only — no prose and no code fences.`.trim();
   }
 
-  const response = await fetch(resolveApiUrl(), {
-    method: "POST",
-    headers: {
-      "content-type": "application/json",
-      authorization: `Bearer ${ENV.forgeApiKey}`,
-    },
-    body: JSON.stringify(payload),
-  });
+  if (anthropicTools.length) payload.tools = anthropicTools;
+  if (systemPrompt) payload.system = systemPrompt;
 
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(
-      `LLM invoke failed: ${response.status} ${response.statusText} – ${errorText}`
-    );
+  const data = await postToAnthropic(payload, apiKey);
+  const blocks: Array<Record<string, any>> = Array.isArray(data.content) ? data.content : [];
+
+  let content = blocks
+    .filter(block => block.type === "text")
+    .map(block => String(block.text ?? ""))
+    .join("");
+  const toolCalls: ToolCall[] = [];
+
+  for (const block of blocks) {
+    if (block.type !== "tool_use") continue;
+    if (structuredToolName && block.name === structuredToolName) {
+      content = JSON.stringify(block.input ?? {});
+      continue;
+    }
+    toolCalls.push({
+      id: String(block.id),
+      type: "function",
+      function: { name: String(block.name), arguments: JSON.stringify(block.input ?? {}) },
+    });
   }
 
-  return (await response.json()) as InvokeResult;
+  if (responseFormat?.type === "json_object") content = stripCodeFences(content);
+
+  const finishReason =
+    data.stop_reason === "end_turn" ? "stop"
+      : data.stop_reason === "max_tokens" ? "length"
+      : data.stop_reason === "tool_use" ? (structuredToolName ? "stop" : "tool_calls")
+      : (data.stop_reason ?? null);
+
+  const usage = data.usage
+    ? {
+        prompt_tokens: Number(data.usage.input_tokens ?? 0),
+        completion_tokens: Number(data.usage.output_tokens ?? 0),
+        total_tokens: Number(data.usage.input_tokens ?? 0) + Number(data.usage.output_tokens ?? 0),
+      }
+    : undefined;
+
+  return {
+    id: String(data.id ?? ""),
+    created: Math.floor(Date.now() / 1000),
+    model: String(data.model ?? ENV.anthropicModel),
+    choices: [
+      {
+        index: 0,
+        message: {
+          role: "assistant",
+          content,
+          ...(toolCalls.length ? { tool_calls: toolCalls } : {}),
+        },
+        finish_reason: finishReason,
+      },
+    ],
+    usage,
+  };
 }

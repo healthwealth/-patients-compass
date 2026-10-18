@@ -13,7 +13,7 @@ export function getStripeClient(): Stripe {
     if (!ENV.stripeSecretKey) {
       throw new Error("STRIPE_SECRET_KEY environment variable is not set");
     }
-    stripeClient = new Stripe(ENV.stripeSecretKey);
+    stripeClient = new Stripe(ENV.stripeSecretKey, { httpClient: Stripe.createFetchHttpClient() });
   }
   return stripeClient;
 }
@@ -241,17 +241,18 @@ export function mapSubscriptionStatus(
 /**
  * Verify Stripe webhook signature
  */
-export function verifyWebhookSignature(
-  body: string,
+export async function verifyWebhookSignature(
+  body: string | Buffer,
   signature: string
-): Stripe.Event {
+): Promise<Stripe.Event> {
   const stripe = getStripeClient();
 
   if (!ENV.stripeWebhookSecret) {
     throw new Error("STRIPE_WEBHOOK_SECRET environment variable is not set");
   }
 
-  return stripe.webhooks.constructEvent(
+  // Async verification uses Web Crypto, which is what Cloudflare Workers provide.
+  return stripe.webhooks.constructEventAsync(
     body,
     signature,
     ENV.stripeWebhookSecret

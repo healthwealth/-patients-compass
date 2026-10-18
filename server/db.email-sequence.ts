@@ -1,6 +1,7 @@
 import { eq } from "drizzle-orm";
 import { emailSequences, type InsertEmailSequence } from "../drizzle/schema";
 import { getDb } from "./db";
+import { isUniqueViolation } from "./_core/dbErrors";
 
 /**
  * Create a new email sequence for a user
@@ -20,7 +21,7 @@ export async function createEmailSequence(userId: number): Promise<void> {
     });
   } catch (error) {
     // If sequence already exists, that's fine
-    if ((error as any)?.code === "ER_DUP_ENTRY") {
+    if (isUniqueViolation(error)) {
       console.log(`[EmailSequence] Sequence already exists for user ${userId}`);
       return;
     }

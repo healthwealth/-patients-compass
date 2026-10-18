@@ -42,7 +42,9 @@ export function getSessionCookieOptions(
   return {
     httpOnly: true,
     path: "/",
-    sameSite: "none",
+    // First-party site on its own domain: "lax" keeps the session on normal
+    // navigation (including returning from Stripe) and works on http://localhost.
+    sameSite: "lax",
     secure: isSecureRequest(req),
   };
 }

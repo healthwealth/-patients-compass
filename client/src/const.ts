@@ -236,16 +236,8 @@ export const BOOK_EXCERPTS: BookExcerpt[] = [
 ];
 
 // Auth helpers
-export function getLoginUrl(returnPath?: string, rememberMe = false): string {
-  const oauthPortalUrl = import.meta.env.VITE_OAUTH_PORTAL_URL;
-  const appId = import.meta.env.VITE_APP_ID;
-  const origin = window.location.origin;
-  const state = JSON.stringify({ origin, returnPath: returnPath || "/", rememberMe });
-  const encodedState = btoa(state);
-  const params = new URLSearchParams({
-    app_id: appId,
-    redirect_url: `${origin}/api/oauth/callback`,
-    state: encodedState,
-  });
-  return `${oauthPortalUrl.replace(/\/$/, "")}/login?${params.toString()}`;
+/** The site's own sign-in page (email/password, email link, or Google). */
+export function getLoginUrl(returnPath?: string, _rememberMe = false): string {
+  const path = returnPath && returnPath.startsWith("/") ? returnPath : "";
+  return path && path !== "/" ? `/signin?returnPath=${encodeURIComponent(path)}` : "/signin";
 }

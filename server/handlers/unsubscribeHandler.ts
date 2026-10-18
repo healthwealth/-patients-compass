@@ -104,12 +104,12 @@ unsubscribeRouter.post("/confirm", async (req: Request, res: Response) => {
       .update(emailAutomation)
       .set({
         // Disable all email preferences
-        emailPreferences: JSON.stringify({
+        emailPreferences: {
           marketing: false,
           transactional: false,
           digests: false,
           frequency: "never",
-        }),
+        },
         updatedAt: now,
       })
       .where(eq(emailAutomation.userId, decoded.userId));
@@ -172,12 +172,12 @@ unsubscribeRouter.post("/resubscribe", async (req: Request, res: Response) => {
       .update(emailAutomation)
       .set({
         // Re-enable default email preferences
-        emailPreferences: JSON.stringify({
+        emailPreferences: {
           marketing: true,
           transactional: true,
           digests: true,
           frequency: "weekly",
-        }),
+        },
         updatedAt: now,
       })
       .where(eq(emailAutomation.userId, decoded.userId));

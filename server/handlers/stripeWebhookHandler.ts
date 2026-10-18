@@ -23,7 +23,7 @@ export async function handleStripeWebhook(req: Request, res: Response) {
     // Verify webhook signature
     let event: Stripe.Event;
     try {
-      event = verifyWebhookSignature(req.body, signature);
+      event = await verifyWebhookSignature(req.body, signature);
     } catch (error) {
       console.error("[Stripe Webhook] Signature verification failed:", error);
       return res.status(400).json({ error: "Invalid signature" });

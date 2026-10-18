@@ -32,7 +32,7 @@ describe("assistant appearance router", () => {
 
   it("allows administrators to update the singleton setting", async () => {
     const values = vi.fn().mockReturnValue({
-      onDuplicateKeyUpdate: vi.fn().mockResolvedValue(undefined),
+      onConflictDoUpdate: vi.fn().mockResolvedValue(undefined),
     });
     const limit = vi.fn()
       .mockResolvedValueOnce([{ portraitKey: "sage_educator" }])
@@ -52,7 +52,7 @@ describe("assistant appearance router", () => {
 
   it("persists bounded crop coordinates for the active portrait", async () => {
     const values = vi.fn().mockReturnValue({
-      onDuplicateKeyUpdate: vi.fn().mockResolvedValue(undefined),
+      onConflictDoUpdate: vi.fn().mockResolvedValue(undefined),
     });
     const limit = vi.fn()
       .mockResolvedValueOnce([{ portraitKey: "sage_educator" }])
@@ -72,7 +72,7 @@ describe("assistant appearance router", () => {
 
   it("uploads and stores an administrator-owned custom portrait", async () => {
     vi.mocked(storagePut).mockResolvedValue({ key: "assistant-portraits/custom.png", url: "/manus-storage/custom.png" });
-    const values = vi.fn().mockResolvedValue([{ insertId: 4 }]);
+    const values = vi.fn().mockReturnValue({ returning: vi.fn().mockResolvedValue([{ insertId: 4 }]) });
     vi.mocked(getDb).mockResolvedValue({ insert: vi.fn(() => ({ values })) } as never);
     const caller = callerFor("admin");
     const portrait = await caller.uploadCustomPortrait({
@@ -105,7 +105,7 @@ describe("assistant appearance router", () => {
   it("allows an administrator to select and resolve an available custom portrait", async () => {
     const custom = { key: "custom_abc123", label: "Community educator", description: "A professional community health education portrait.", url: "/manus-storage/custom.png", altText: "Health Companion AI community educator" };
     const chain = (rows: unknown[]) => ({ from: vi.fn(() => ({ where: vi.fn(() => ({ limit: vi.fn().mockResolvedValue(rows) })) })) });
-    const values = vi.fn().mockReturnValue({ onDuplicateKeyUpdate: vi.fn().mockResolvedValue(undefined) });
+    const values = vi.fn().mockReturnValue({ onConflictDoUpdate: vi.fn().mockResolvedValue(undefined) });
     const db = {
       insert: vi.fn(() => ({ values })),
       select: vi.fn()

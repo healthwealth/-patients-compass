@@ -19,7 +19,7 @@ import {
   MailCheck,
   Info,
 } from "lucide-react";
-import { getLoginUrl } from "@/const";
+import GoogleSignInButton from "@/components/GoogleSignInButton";
 import { trpc } from "@/lib/trpc";
 import { decrementCooldown, EMAIL_LINK_COOLDOWN_SECONDS } from "@/lib/authFlow";
 import EmailLinkCooldownIndicator from "@/components/EmailLinkCooldownIndicator";
@@ -166,12 +166,9 @@ export default function SignIn() {
   };
 
   const startOAuthRedirect = () => {
-    setIsOAuthRedirecting(true);
-    setOAuthStep("preparing");
+    // Provider sign-in now happens in place with the Google button above.
     setOAuthError("");
-    sessionStorage.setItem("patients-compass-oauth-pending", "1");
-    sessionStorage.setItem("patients-compass-oauth-remember-me", rememberMe ? "1" : "0");
-    window.location.href = getLoginUrl(returnPath, rememberMe);
+    window.setTimeout(() => emailFallbackInputRef.current?.focus(), 50);
   };
 
   const handleDevSignIn = async (e: React.FormEvent) => {
@@ -203,7 +200,7 @@ export default function SignIn() {
 
   return (
     <div className="min-h-screen bg-[#F7F4EF] flex flex-col items-center justify-center px-4 py-16">
-      {oauthError && <div className="fixed inset-x-4 top-4 z-50 mx-auto max-w-md rounded-2xl border border-amber-200 bg-white p-4 text-left shadow-xl" role="alertdialog" aria-label="Sign-in error"><div className="flex items-start gap-3"><AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-amber-600" /><div className="min-w-0 flex-1"><p className="text-sm font-semibold text-[#2C2A29]">Sign-in needs another try</p><p className="mt-1 text-xs leading-5 text-[#5C5A59]">{oauthError}</p><button type="button" className="mt-2 text-xs font-semibold text-[#51715B] underline" onClick={() => { setOAuthError(""); startOAuthRedirect(); }}>Retry sign-in</button>{Number(sessionStorage.getItem("patients-compass-oauth-retry-count") || "0") >= 2 && <div className="mt-3 animate-in fade-in slide-in-from-top-2 duration-300 border-t border-[#EBE6DC] pt-3"><p className="text-xs font-semibold text-[#2C2A29]">Use an email sign-in link instead</p><Input className="mt-2 h-8 text-xs" type="email" placeholder="your@email.com" value={email} onChange={(e) => setEmail(e.target.value)} aria-label="Email for sign-in link" ref={emailFallbackInputRef} />{emailLinkSent && <div className="mt-2 flex animate-in fade-in zoom-in-95 items-center gap-2 rounded-lg bg-[#F3F8F3] px-3 py-2 text-xs font-semibold text-[#51715B]" role="status"><CheckCircle2 className="h-4 w-4" aria-hidden="true" />Email sent. Check your inbox.</div>}<Button type="button" size="sm" className="mt-2 w-full bg-[#7E9A85] text-white transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#6F8C76] hover:shadow-md active:translate-y-0 active:scale-[0.98]" disabled={emailLinkRequest.isPending || emailLinkCooldown > 0 || !email.trim()} onClick={() => emailLinkRequest.mutate({ email: email.trim() })}>{emailLinkRequest.isPending ? "Sending link…" : emailLinkCooldown > 0 ? `Resend link in ${emailLinkCooldown}s` : emailLinkSent ? "Send another email link" : "Send email sign-in link"}</Button><EmailLinkCooldownIndicator seconds={emailLinkCooldown} sent={emailLinkSent} /><p className="mt-1 text-center text-[11px] text-[#817B74]" aria-live="polite" aria-atomic="true">{emailLinkCooldown > 0 ? `For your security, you can request another link in ${emailLinkCooldown} seconds.` : emailLinkSent ? "Resend available — request a new link if needed." : "Links expire after 15 minutes."}</p><span className="mt-2 inline-flex items-center gap-1 text-[11px] text-[#817B74]" title="Email sign-in links expire after 15 minutes and can be used only once. Never share your link with anyone." aria-label="Security information: links expire after 15 minutes and can be used only once."><Info className="h-3.5 w-3.5" aria-hidden="true" />Security details</span><button type="button" className="mt-2 w-full text-center text-xs font-semibold text-[#5C5A59] underline-offset-4 transition-colors hover:text-[#2C2A29] hover:underline active:scale-[0.98]" onClick={() => { setOAuthError(""); setEmailLinkSent(false); setEmailLinkCooldown(0); window.setTimeout(() => oauthButtonRef.current?.focus(), 50); }}>Back to OAuth</button></div>}</div><button type="button" aria-label="Close sign-in error" onClick={() => setOAuthError("")} className="rounded p-1 text-[#817B74] hover:bg-[#F9F6F0]"><X className="h-4 w-4" /></button></div></div>}
+      {oauthError && <div className="fixed inset-x-4 top-4 z-50 mx-auto max-w-md rounded-2xl border border-amber-200 bg-white p-4 text-left shadow-xl" role="alertdialog" aria-label="Sign-in error"><div className="flex items-start gap-3"><AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-amber-600" /><div className="min-w-0 flex-1"><p className="text-sm font-semibold text-[#2C2A29]">Sign-in needs another try</p><p className="mt-1 text-xs leading-5 text-[#5C5A59]">{oauthError}</p><button type="button" className="mt-2 text-xs font-semibold text-[#51715B] underline" onClick={() => { setOAuthError(""); startOAuthRedirect(); }}>Retry sign-in</button>{Number(sessionStorage.getItem("patients-compass-oauth-retry-count") || "0") >= 2 && <div className="mt-3 animate-in fade-in slide-in-from-top-2 duration-300 border-t border-[#EBE6DC] pt-3"><p className="text-xs font-semibold text-[#2C2A29]">Use an email sign-in link instead</p><Input className="mt-2 h-8 text-xs" type="email" placeholder="your@email.com" value={email} onChange={(e) => setEmail(e.target.value)} aria-label="Email for sign-in link" ref={emailFallbackInputRef} />{emailLinkSent && <div className="mt-2 flex animate-in fade-in zoom-in-95 items-center gap-2 rounded-lg bg-[#F3F8F3] px-3 py-2 text-xs font-semibold text-[#51715B]" role="status"><CheckCircle2 className="h-4 w-4" aria-hidden="true" />Email sent. Check your inbox.</div>}<Button type="button" size="sm" className="mt-2 w-full bg-[#7E9A85] text-white transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#6F8C76] hover:shadow-md active:translate-y-0 active:scale-[0.98]" disabled={emailLinkRequest.isPending || emailLinkCooldown > 0 || !email.trim()} onClick={() => emailLinkRequest.mutate({ email: email.trim() })}>{emailLinkRequest.isPending ? "Sending link…" : emailLinkCooldown > 0 ? `Resend link in ${emailLinkCooldown}s` : emailLinkSent ? "Send another email link" : "Send email sign-in link"}</Button><EmailLinkCooldownIndicator seconds={emailLinkCooldown} sent={emailLinkSent} /><p className="mt-1 text-center text-[11px] text-[#817B74]" aria-live="polite" aria-atomic="true">{emailLinkCooldown > 0 ? `For your security, you can request another link in ${emailLinkCooldown} seconds.` : emailLinkSent ? "Resend available — request a new link if needed." : "Links expire after 15 minutes."}</p><span className="mt-2 inline-flex items-center gap-1 text-[11px] text-[#817B74]" title="Email sign-in links expire after 15 minutes and can be used only once. Never share your link with anyone." aria-label="Security information: links expire after 15 minutes and can be used only once."><Info className="h-3.5 w-3.5" aria-hidden="true" />Security details</span><button type="button" className="mt-2 w-full text-center text-xs font-semibold text-[#5C5A59] underline-offset-4 transition-colors hover:text-[#2C2A29] hover:underline active:scale-[0.98]" onClick={() => { setOAuthError(""); setEmailLinkSent(false); setEmailLinkCooldown(0); window.setTimeout(() => oauthButtonRef.current?.focus(), 50); }}>Back to sign-in options</button></div>}</div><button type="button" aria-label="Close sign-in error" onClick={() => setOAuthError("")} className="rounded p-1 text-[#817B74] hover:bg-[#F9F6F0]"><X className="h-4 w-4" /></button></div></div>}
       {/* Back link */}
       <div className="w-full max-w-md mb-6">
         <Link href="/">
@@ -230,15 +227,9 @@ export default function SignIn() {
             </p>
           </div>
 
-          <Button
-            ref={oauthButtonRef}
-            className="mb-6 w-full bg-[#2C2A29] hover:bg-[#1A1918] text-white rounded-xl font-semibold"
-            disabled={isOAuthRedirecting}
-            onClick={startOAuthRedirect}
-          >
-            {isOAuthRedirecting ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />{oauthStep === "preparing" ? "Preparing secure sign-in…" : oauthStep === "redirecting" ? "Redirecting securely…" : "Completing sign-in…"}</> : "Continue with Patients Compass"}
-          </Button>
-          {isOAuthRedirecting && <div className="mb-6 rounded-xl border border-[#BFD0C1] bg-[#F3F8F3] p-3" role="status" aria-live="polite" aria-atomic="true" aria-label="OAuth progress"><div className="mb-2 flex items-center justify-between text-[11px] font-semibold text-[#51715B]"><span className={oauthStep === "preparing" ? "text-[#2C2A29]" : ""}>1. Preparing</span><span className={oauthStep === "redirecting" ? "text-[#2C2A29]" : ""}>2. Redirecting</span><span className={oauthStep === "completing" ? "text-[#2C2A29]" : ""}>3. Completing</span></div><div className="h-1.5 overflow-hidden rounded-full bg-[#DDE9DE]"><div className="h-full rounded-full bg-[#7E9A85] transition-all duration-500" style={{ width: oauthStep === "preparing" ? "33%" : oauthStep === "redirecting" ? "66%" : "92%" }} /></div></div>}
+          <div className="mb-6">
+            <GoogleSignInButton returnPath={returnPath === "/" ? "/dashboard" : returnPath} text="continue_with" />
+          </div>
           <label className="mb-6 flex items-center justify-center gap-2 text-xs text-[#5C5A59]"><Checkbox checked={rememberMe} onCheckedChange={(checked) => setRememberMe(checked === true)} />Remember me on this device <span className="inline-flex items-center gap-1 text-[#817B74]" title="If enabled, this device stays signed in for up to one year. The preference is stored only after authentication succeeds."><Info className="h-3.5 w-3.5" aria-hidden="true" /><span className="sr-only">Saved for up to one year after successful sign-in</span></span></label>
 
           <form onSubmit={handleEmailSignIn} className="mb-6 space-y-3 rounded-xl border border-[#EBE6DC] bg-white p-4">
@@ -307,7 +298,7 @@ export default function SignIn() {
           </div>
 
           {/* Dev Sign-In (Testing Only) */}
-          {typeof window !== "undefined" && (window.location.hostname === "localhost" || window.location.hostname.includes("manus.computer") || window.location.hostname.includes("manus.space")) && (
+          {typeof window !== "undefined" && (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") && (
             <>
               <div className="border-t border-[#EBE6DC] my-5" />
               <div className="bg-blue-50 rounded-xl p-4 mb-6 border border-blue-200">
@@ -408,10 +399,10 @@ export default function SignIn() {
             <Button
               className="w-full bg-[#2C2A29] hover:bg-[#1A1918] text-white rounded-xl font-semibold"
               onClick={() => {
-                rememberSession(rememberMe); window.location.href = getLoginUrl(returnPath, rememberMe);
+                window.location.href = returnPath && returnPath !== "/" ? `/signup?returnPath=${encodeURIComponent(returnPath)}` : "/signup";
               }}
             >
-              Continue with Patients Compass
+              Create a free account
             </Button>
             <Link href="/pricing">
               <Button

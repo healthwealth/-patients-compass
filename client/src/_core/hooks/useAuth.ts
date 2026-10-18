@@ -70,10 +70,6 @@ export function useAuth(options?: UseAuthOptions) {
   }, [extendSessionMutation]);
 
   const state = useMemo(() => {
-    localStorage.setItem(
-      "manus-runtime-user-info",
-      JSON.stringify(meQuery.data)
-    );
     return {
       user: meQuery.data ?? null,
       loading: meQuery.isLoading || logoutMutation.isPending,
