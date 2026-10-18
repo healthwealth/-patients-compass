@@ -1,1 +1,0 @@
-ALTER TABLE `user_activities` MODIFY COLUMN `eventType` enum('lab_report_saved','wellness_plan_saved','profile_image_updated','profile_image_removed','subscription_portal_opened','content_saved','content_unsaved','collection_followed','collection_unfollowed') NOT NULL;

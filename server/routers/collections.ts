@@ -97,7 +97,7 @@ export const collectionsRouter = router({
     const safeStem = input.fileName.replace(/\.[^.]+$/, "").toLowerCase().replace(/[^a-z0-9-]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 80) || "collection-cover";
     const asset = await storagePut(`collection-covers/${ctx.user.id}/${Date.now()}-${safeStem}.${extension}`, bytes, input.contentType);
     const db = await requireDb();
-    const [result] = await db.insert(collectionCoverAssets).values({ title: input.title, category: input.category, imageUrl: asset.url, altText: input.altText, createdBy: ctx.user.id });
+    const [result] = await db.insert(collectionCoverAssets).values({ title: input.title, category: input.category, imageUrl: asset.url, altText: input.altText, createdBy: ctx.user.id }).returning({ insertId: collectionCoverAssets.id });
     return { ...asset, assetId: Number((result as { insertId?: number }).insertId), title: input.title, altText: input.altText, category: input.category };
   }),
 
@@ -124,7 +124,7 @@ export const collectionsRouter = router({
 
   adminCreate: adminProcedure.input(collectionFields).mutation(async ({ input }) => {
     const db = await requireDb();
-    const [result] = await db.insert(articleCollections).values({ slug: input.slug, title: input.title, description: input.description, coverImage: input.coverImage ?? null, published: input.published ? 1 : 0 });
+    const [result] = await db.insert(articleCollections).values({ slug: input.slug, title: input.title, description: input.description, coverImage: input.coverImage ?? null, published: input.published ? 1 : 0 }).returning({ insertId: articleCollections.id });
     return { id: Number((result as { insertId?: number }).insertId) };
   }),
 

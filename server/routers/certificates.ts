@@ -116,7 +116,7 @@ export const certificatesRouter = router({
       fileUrl: pdfUploaded.url,
       previewKey: previewUploaded.key,
       previewUrl: previewUploaded.url,
-    });
+    }).returning({ insertId: savedCertificates.id });
     const certificateId = Number((result as { insertId?: number }).insertId);
 
     await recordUserActivity({

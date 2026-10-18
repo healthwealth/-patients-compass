@@ -1,1 +1,0 @@
-ALTER TABLE `collection_cover_assets` ADD `category` varchar(80) DEFAULT 'general' NOT NULL;

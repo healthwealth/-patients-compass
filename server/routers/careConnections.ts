@@ -67,7 +67,7 @@ export const careConnectionsRouter = router({
     }),
     create: adminProcedure.input(partnerFields).mutation(async ({ input }) => {
       const db = await requireDb();
-      const [result] = await db.insert(telehealthPartners).values({ ...input, logoUrl: input.logoUrl ?? null, licensingAuthority: input.licensingAuthority ?? null, licenseNumber: input.licenseNumber ?? null, licenseUrl: input.licenseUrl ?? null, licenseExpiresAt: input.licenseExpiresAt ?? null, verificationNote: input.verificationNote ?? null, verifiedAt: input.verifiedAt ?? null, published: input.published ? 1 : 0 });
+      const [result] = await db.insert(telehealthPartners).values({ ...input, logoUrl: input.logoUrl ?? null, licensingAuthority: input.licensingAuthority ?? null, licenseNumber: input.licenseNumber ?? null, licenseUrl: input.licenseUrl ?? null, licenseExpiresAt: input.licenseExpiresAt ?? null, verificationNote: input.verificationNote ?? null, verifiedAt: input.verifiedAt ?? null, published: input.published ? 1 : 0 }).returning({ insertId: telehealthPartners.id });
       const id = Number((result as { insertId: number }).insertId);
       if (input.states.length) await db.insert(telehealthPartnerStates).values(input.states.map((stateCode) => ({ partnerId: id, stateCode })));
       if (input.specialties.length) await db.insert(telehealthPartnerSpecialties).values(input.specialties.map((specialty) => ({ partnerId: id, specialty })));

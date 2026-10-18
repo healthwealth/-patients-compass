@@ -146,7 +146,8 @@ export const assistantAppearanceRouter = router({
       await db
         .insert(assistantAppearanceSettings)
         .values({ id: 1, portraitKey: input.portraitKey, updatedBy: ctx.user.id })
-        .onDuplicateKeyUpdate({
+        .onConflictDoUpdate({
+          target: assistantAppearanceSettings.id,
           set: { portraitKey: input.portraitKey, updatedBy: ctx.user.id },
         });
 
@@ -167,7 +168,7 @@ export const assistantAppearanceRouter = router({
       await db
         .insert(assistantPortraitCropPresets)
         .values({ portraitKey, cropPositionX: input.cropPositionX, cropPositionY: input.cropPositionY, updatedBy: ctx.user.id })
-        .onDuplicateKeyUpdate({ set: { cropPositionX: input.cropPositionX, cropPositionY: input.cropPositionY, updatedBy: ctx.user.id } });
+        .onConflictDoUpdate({ target: assistantPortraitCropPresets.portraitKey, set: { cropPositionX: input.cropPositionX, cropPositionY: input.cropPositionY, updatedBy: ctx.user.id } });
       await db
         .insert(assistantAppearanceSettings)
         .values({
@@ -177,7 +178,8 @@ export const assistantAppearanceRouter = router({
           cropPositionY: input.cropPositionY,
           updatedBy: ctx.user.id,
         })
-        .onDuplicateKeyUpdate({
+        .onConflictDoUpdate({
+          target: assistantAppearanceSettings.id,
           set: { cropPositionX: input.cropPositionX, cropPositionY: input.cropPositionY, updatedBy: ctx.user.id },
         });
       return readSelectedPortrait();

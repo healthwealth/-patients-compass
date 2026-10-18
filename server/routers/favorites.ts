@@ -56,7 +56,7 @@ export const favoritesRouter = router({
     if (!post) throw new TRPCError({ code: "NOT_FOUND", message: "This article is unavailable to save." });
     const [existing] = await db.select({ id: userFavorites.id }).from(userFavorites).where(and(eq(userFavorites.userId, ctx.user.id), eq(userFavorites.resourceType, input.resourceType), eq(userFavorites.resourceId, input.resourceId))).limit(1);
     if (existing) return { favoriteId: existing.id, saved: true, alreadySaved: true };
-    const [result] = await db.insert(userFavorites).values({ userId: ctx.user.id, ...input });
+    const [result] = await db.insert(userFavorites).values({ userId: ctx.user.id, ...input }).returning({ insertId: userFavorites.id });
     await recordUserActivity({ userId: ctx.user.id, eventType: "content_saved", title: "Article saved", summary: "A public article was added to your saved content.", sourceRef: String(input.resourceId) });
     return { favoriteId: Number((result as { insertId?: number }).insertId), saved: true, alreadySaved: false };
   }),

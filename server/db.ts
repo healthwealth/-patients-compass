@@ -1,18 +1,25 @@
 import { eq, desc, count, and, gte, inArray } from "drizzle-orm";
-import { drizzle } from "drizzle-orm/mysql2";
+import { drizzle } from "drizzle-orm/d1";
 import { InsertUser, users, labReports, emailSubscribers, biomarkerReadings, healthNotes, wellnessPlans, userActivities } from "../drizzle/schema";
 import { ENV } from './_core/env';
+import { getBindings, type D1Database } from "./_core/runtime";
 
 let _db: ReturnType<typeof drizzle> | null = null;
+let _dbBinding: D1Database | null = null;
 
-// Lazily create the drizzle instance so local tooling can run without a DB.
+// Lazily create the drizzle instance from the Cloudflare D1 binding so local
+// tooling and unit tests can run without a database.
 export async function getDb() {
-  if (!_db && process.env.DATABASE_URL) {
+  const binding = getBindings().DB;
+  if (!binding) return null;
+  if (!_db || _dbBinding !== binding) {
     try {
-      _db = drizzle(process.env.DATABASE_URL);
+      _db = drizzle(binding);
+      _dbBinding = binding;
     } catch (error) {
       console.warn("[Database] Failed to connect:", error);
       _db = null;
+      _dbBinding = null;
     }
   }
   return _db;
@@ -68,7 +75,8 @@ export async function upsertUser(user: InsertUser): Promise<void> {
       updateSet.lastSignedIn = new Date();
     }
 
-    await db.insert(users).values(values).onDuplicateKeyUpdate({
+    await db.insert(users).values(values).onConflictDoUpdate({
+      target: users.openId,
       set: updateSet,
     });
   } catch (error) {
@@ -107,7 +115,7 @@ export async function createLabReport(data: {
     fileUrl: data.fileUrl ?? null,
     rawText: data.rawText ?? null,
     status: "pending",
-  });
+  }).returning({ insertId: labReports.id });
   const insertId = (result as any).insertId;
   const [report] = await db
     .select()
@@ -217,7 +225,7 @@ export async function saveBiomarkerReading(data: {
     unit: data.unit ?? null,
     readingDate: data.readingDate ?? new Date(),
     notes: data.notes ?? null,
-  });
+  }).returning({ insertId: biomarkerReadings.id });
   const insertId = (result as any).insertId;
   const [reading] = await db
     .select()
@@ -254,7 +262,7 @@ export async function createHealthNote(data: {
     category: data.category,
     title: data.title,
     content: data.content ?? null,
-  });
+  }).returning({ insertId: healthNotes.id });
   const insertId = (result as any).insertId;
   const [note] = await db
     .select()
@@ -299,7 +307,7 @@ export async function saveWellnessPlan(data: {
     inputs: data.inputs as any,
     planOutput: data.planOutput as any,
     notes: data.notes ?? null,
-  });
+  }).returning({ insertId: wellnessPlans.id });
   const insertId = (result as any).insertId;
   const [plan] = await db
     .select()
