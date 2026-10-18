@@ -43,6 +43,7 @@ import Dashboard from "./pages/Dashboard";
 
 // Pages — admin-only
 import AdminWaitlist from "@/pages/AdminWaitlist";
+import AdminMigration from "@/pages/AdminMigration";
 import AdminSignup from "@/pages/AdminSignup";
 import AdminControl from "@/pages/AdminControl";
 import AdminAnalytics from "@/pages/AdminAnalytics";
@@ -143,6 +144,11 @@ function Router() {
       <Route path="/admin/control">
         <ProtectedRoute>
           <AdminControl />
+        </ProtectedRoute>
+      </Route>
+      <Route path="/admin/migration">
+        <ProtectedRoute adminOnly>
+          <AdminMigration />
         </ProtectedRoute>
       </Route>
       <Route path="/admin/waitlist">

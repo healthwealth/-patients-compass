@@ -99,7 +99,7 @@ describe("Licensed Care Connections content boundaries", () => {
     expect(signIn).toContain("emailFallbackInputRef");
     expect(signIn).toContain("Resend available — request a new link if needed.");
     expect(signIn).toContain("Security information: links expire after 15 minutes and can be used only once.");
-    expect(signIn).toContain("oauthButtonRef.current?.focus()");
+    expect(signIn).toContain("primaryEmailRef.current?.focus()");
     expect(signIn).toContain("role=\"alertdialog\"");
     expect(appSource).toContain("OAuthWelcomeToast");
     expect(appSource).toContain("Welcome back");

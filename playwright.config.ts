@@ -7,15 +7,16 @@ export default defineConfig({
   retries: process.env.CI ? 2 : 0,
   reporter: [["list"], ["html", { open: "never" }]],
   use: {
-    baseURL: "http://127.0.0.1:4173",
+    baseURL: "http://127.0.0.1:8787",
     trace: "on-first-retry",
     screenshot: "only-on-failure",
   },
   webServer: {
-    command: "PORT=4173 pnpm dev",
-    url: "http://127.0.0.1:4173",
-    reuseExistingServer: false,
-    timeout: 120_000,
+    // Builds the site and runs it in the local Cloudflare runtime (D1/R2 simulated).
+    command: "pnpm build && npx wrangler d1 migrations apply DB --local && npx wrangler dev --port 8787 --ip 127.0.0.1",
+    url: "http://127.0.0.1:8787",
+    reuseExistingServer: !process.env.CI,
+    timeout: 240_000,
   },
   projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
 });

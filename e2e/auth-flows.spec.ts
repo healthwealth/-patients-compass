@@ -22,7 +22,7 @@ test.describe("authentication recovery flows", () => {
 
   test("verification page shows setup progress, resend guidance, and support FAQ", async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
-    await page.context().grantPermissions(["clipboard-read", "clipboard-write"], { origin: "http://127.0.0.1:4173" });
+    await page.context().grantPermissions(["clipboard-read", "clipboard-write"], { origin: "http://127.0.0.1:8787" });
     await page.goto("/signup?verificationToken=e2e-token");
     await expect(page.getByText("Step 2 of 2: Verify Your Email")).toBeVisible();
     await expect(page.getByLabel("Account setup progress")).toBeVisible();
@@ -102,10 +102,10 @@ test("sign-in shows a recoverable OAuth failure popup", async ({ page }) => {
   await expect(emailLinkButton).toBeEnabled();
   await emailLinkButton.click();
   await expect(page.getByText("Email sent. Check your inbox.")).toBeVisible();
-  await page.getByRole("button", { name: "Back to OAuth" }).click();
+  await page.getByRole("button", { name: "Back to sign-in options" }).click();
   await expect(page.getByRole("alertdialog", { name: "Sign-in error" })).toBeHidden();
-  await expect(page.getByRole("button", { name: "Continue with Patients Compass" }).first()).toBeVisible();
-  await expect(page.getByRole("button", { name: "Continue with Patients Compass" }).first()).toBeFocused();
+  await expect(page.getByLabel("Email address")).toBeVisible();
+  await expect(page.getByLabel("Email address")).toBeFocused();
 });
 
 
