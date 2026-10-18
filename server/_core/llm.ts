@@ -227,7 +227,6 @@ const normalizeResponseFormat = ({
 
 const ANTHROPIC_VERSION = "2023-06-01";
 const DEFAULT_MAX_TOKENS = 16000;
-const STRUCTURED_TOOL_PREFIX = "structured_output_";
 
 type AnthropicBlock = Record<string, unknown>;
 type AnthropicMessage = { role: "user" | "assistant"; content: AnthropicBlock[] };
@@ -304,6 +303,51 @@ function toAnthropicMessages(messages: Message[]): { system: string; messages: A
 const stripCodeFences = (value: string) =>
   value.trim().replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "").trim();
 
+class AnthropicError extends Error {
+  constructor(message: string, readonly status: number, readonly body: string) {
+    super(message);
+  }
+}
+
+const SUPPORTED_STRING_FORMATS = new Set(["date-time", "time", "date", "duration", "email", "hostname", "uri", "ipv4", "ipv6", "uuid"]);
+const UNSUPPORTED_SCHEMA_KEYS = ["minimum", "maximum", "exclusiveMinimum", "exclusiveMaximum", "multipleOf", "minLength", "maxLength", "pattern", "maxItems", "uniqueItems", "minProperties", "maxProperties", "strict"];
+
+/**
+ * Adapts a JSON schema to what Anthropic structured outputs accept:
+ * every object gets additionalProperties:false and numeric/length limits are
+ * dropped (the prompt still describes them).
+ */
+export function toStructuredOutputSchema(schema: unknown): unknown {
+  if (Array.isArray(schema)) return schema.map(toStructuredOutputSchema);
+  if (!schema || typeof schema !== "object") return schema;
+  const out: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(schema as Record<string, unknown>)) {
+    if (UNSUPPORTED_SCHEMA_KEYS.includes(key)) continue;
+    if (key === "minItems" && typeof value === "number" && value > 1) {
+      out.minItems = 1;
+      continue;
+    }
+    if (key === "format" && typeof value === "string" && !SUPPORTED_STRING_FORMATS.has(value)) continue;
+    if (key === "properties" && value && typeof value === "object") {
+      out.properties = Object.fromEntries(Object.entries(value as Record<string, unknown>).map(([name, sub]) => [name, toStructuredOutputSchema(sub)]));
+      continue;
+    }
+    if (["items", "anyOf", "allOf", "oneOf", "$defs", "definitions", "not"].includes(key)) {
+      out[key === "oneOf" ? "anyOf" : key] =
+        key === "$defs" || key === "definitions"
+          ? Object.fromEntries(Object.entries((value ?? {}) as Record<string, unknown>).map(([name, sub]) => [name, toStructuredOutputSchema(sub)]))
+          : toStructuredOutputSchema(value);
+      continue;
+    }
+    out[key] = value;
+  }
+  const type = out.type;
+  if (type === "object" || (Array.isArray(type) && type.includes("object")) || out.properties) {
+    out.additionalProperties = false;
+  }
+  return out;
+}
+
 async function postToAnthropic(payload: Record<string, unknown>, apiKey: string) {
   const delays = [0, 1500, 4000];
   let lastError = "";
@@ -319,11 +363,14 @@ async function postToAnthropic(payload: Record<string, unknown>, apiKey: string)
       body: JSON.stringify(payload),
     });
     if (response.ok) return (await response.json()) as Record<string, any>;
-    lastError = `${response.status} ${response.statusText} – ${await response.text().catch(() => "")}`;
+    const body = await response.text().catch(() => "");
+    lastError = `${response.status} ${response.statusText} – ${body}`;
     // Retry only on rate limits, overload and transient server errors.
-    if (![429, 500, 502, 503, 504, 529].includes(response.status)) break;
+    if (![429, 500, 502, 503, 504, 529].includes(response.status)) {
+      throw new AnthropicError(`LLM invoke failed: ${lastError}`, response.status, body);
+    }
   }
-  throw new Error(`LLM invoke failed: ${lastError}`);
+  throw new AnthropicError(`LLM invoke failed: ${lastError}`, 0, lastError);
 }
 
 export async function invokeLLM(params: InvokeParams): Promise<InvokeResult> {
@@ -341,7 +388,6 @@ export async function invokeLLM(params: InvokeParams): Promise<InvokeResult> {
   };
 
   let systemPrompt = system;
-  let structuredToolName: string | null = null;
   const anthropicTools: AnthropicBlock[] = [];
 
   if (params.tools?.length) {
@@ -355,18 +401,15 @@ export async function invokeLLM(params: InvokeParams): Promise<InvokeResult> {
     const choice = normalizeToolChoice(params.toolChoice || params.tool_choice, params.tools);
     if (choice === "none") payload.tool_choice = { type: "none" };
     else if (choice === "auto") payload.tool_choice = { type: "auto" };
-    else if (choice) payload.tool_choice = { type: "tool", name: choice.function.name };
+    // Forcing a specific tool is not supported by current models; let the model choose.
+    else if (choice) payload.tool_choice = { type: "auto" };
   }
 
+  let structuredSchema: unknown = null;
   if (responseFormat?.type === "json_schema") {
-    // Structured output: force a single tool whose input schema is the requested schema.
-    structuredToolName = `${STRUCTURED_TOOL_PREFIX}${responseFormat.json_schema.name}`.replace(/[^a-zA-Z0-9_-]/g, "_").slice(0, 64);
-    anthropicTools.push({
-      name: structuredToolName,
-      description: "Return the final answer as structured data matching this schema exactly.",
-      input_schema: responseFormat.json_schema.schema,
-    });
-    payload.tool_choice = { type: "tool", name: structuredToolName };
+    // Structured output (Anthropic `output_config.format`): the reply text is JSON matching the schema.
+    structuredSchema = toStructuredOutputSchema(responseFormat.json_schema.schema);
+    payload.output_config = { format: { type: "json_schema", schema: structuredSchema } };
   } else if (responseFormat?.type === "json_object") {
     systemPrompt = `${systemPrompt}\n\nRespond with a single valid JSON object only — no prose and no code fences.`.trim();
   }
@@ -374,7 +417,20 @@ export async function invokeLLM(params: InvokeParams): Promise<InvokeResult> {
   if (anthropicTools.length) payload.tools = anthropicTools;
   if (systemPrompt) payload.system = systemPrompt;
 
-  const data = await postToAnthropic(payload, apiKey);
+  let data: Record<string, any>;
+  try {
+    data = await postToAnthropic(payload, apiKey);
+  } catch (error) {
+    // If the chosen model rejects structured outputs, fall back to asking for JSON in the prompt.
+    if (structuredSchema && error instanceof AnthropicError && error.status === 400) {
+      console.warn("[LLM] Structured output rejected; retrying with JSON instructions:", error.body.slice(0, 300));
+      delete payload.output_config;
+      payload.system = `${systemPrompt}\n\nRespond with a single valid JSON object only — no prose and no code fences — matching this JSON schema exactly:\n${JSON.stringify(structuredSchema)}`.trim();
+      data = await postToAnthropic(payload, apiKey);
+    } else {
+      throw error;
+    }
+  }
   const blocks: Array<Record<string, any>> = Array.isArray(data.content) ? data.content : [];
 
   let content = blocks
@@ -385,10 +441,6 @@ export async function invokeLLM(params: InvokeParams): Promise<InvokeResult> {
 
   for (const block of blocks) {
     if (block.type !== "tool_use") continue;
-    if (structuredToolName && block.name === structuredToolName) {
-      content = JSON.stringify(block.input ?? {});
-      continue;
-    }
     toolCalls.push({
       id: String(block.id),
       type: "function",
@@ -396,12 +448,12 @@ export async function invokeLLM(params: InvokeParams): Promise<InvokeResult> {
     });
   }
 
-  if (responseFormat?.type === "json_object") content = stripCodeFences(content);
+  if (responseFormat?.type === "json_object" || structuredSchema) content = stripCodeFences(content);
 
   const finishReason =
     data.stop_reason === "end_turn" ? "stop"
       : data.stop_reason === "max_tokens" ? "length"
-      : data.stop_reason === "tool_use" ? (structuredToolName ? "stop" : "tool_calls")
+      : data.stop_reason === "tool_use" ? "tool_calls"
       : (data.stop_reason ?? null);
 
   const usage = data.usage
