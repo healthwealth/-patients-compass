@@ -1,0 +1,2 @@
+ALTER TABLE `assistant_appearance_settings` ADD `cropPositionX` int DEFAULT 50 NOT NULL;--> statement-breakpoint
+ALTER TABLE `assistant_appearance_settings` ADD `cropPositionY` int DEFAULT 22 NOT NULL;

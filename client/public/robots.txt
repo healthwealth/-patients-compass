@@ -1,0 +1,21 @@
+User-agent: *
+Allow: /
+
+# Keep private, transactional, and account-only routes out of crawlers.
+Disallow: /dashboard
+Disallow: /admin/
+Disallow: /api/
+Disallow: /profile
+Disallow: /settings/
+Disallow: /referrals
+Disallow: /subscription
+Disallow: /signin
+Disallow: /signup
+Disallow: /dev/
+Disallow: /unsubscribe
+Disallow: /payment-success
+Disallow: /payment-canceled
+Disallow: /purchase-confirmation
+
+# Sitemap
+Sitemap: https://thepatientscompass.com/sitemap.xml

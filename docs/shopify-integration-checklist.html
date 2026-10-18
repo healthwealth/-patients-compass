@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Patients Compass Shopify integration steps, permissions, webhook setup, and launch checklist.">
+  <title>Patients Compass · Shopify Integration Checklist</title>
+  <style>
+    :root { --ink:#1e2a25; --muted:#65746c; --paper:#f6f7f3; --card:#fff; --sage:#7da18b; --sage-dark:#375947; --line:#dfe7df; --amber:#a9671e; --amber-bg:#fff6e8; --radius:24px; }
+    * { box-sizing:border-box; }
+    body { margin:0; color:var(--ink); background:radial-gradient(circle at top right,#e9f1ea 0,transparent 34rem),var(--paper); font:16px/1.6 Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
+    a { color:var(--sage-dark); }
+    .wrap { width:min(1120px,calc(100% - 36px)); margin:auto; }
+    header { padding:72px 0 48px; }
+    .eyebrow { color:var(--sage-dark); font-weight:800; letter-spacing:.12em; text-transform:uppercase; font-size:.76rem; }
+    h1 { max-width:760px; margin:12px 0 16px; font:700 clamp(2.5rem,6vw,5.3rem)/.98 Georgia,serif; letter-spacing:-.055em; }
+    .lead { max-width:690px; color:var(--muted); font-size:1.1rem; }
+    .status { display:flex; gap:12px; flex-wrap:wrap; margin-top:28px; }
+    .pill { display:inline-flex; align-items:center; gap:8px; padding:9px 14px; border:1px solid var(--line); border-radius:999px; background:rgba(255,255,255,.72); font-weight:700; font-size:.9rem; }
+    .dot { width:9px; height:9px; border-radius:50%; background:var(--sage); }
+    .dot.amber { background:#d88a2c; }
+    main { padding-bottom:80px; }
+    .grid { display:grid; grid-template-columns:repeat(12,1fr); gap:18px; }
+    .card { grid-column:span 6; padding:28px; border:1px solid var(--line); border-radius:var(--radius); background:rgba(255,255,255,.86); box-shadow:0 14px 40px rgba(37,64,47,.06); }
+    .card.wide { grid-column:span 12; }
+    h2 { margin:0 0 12px; font:700 1.55rem/1.1 Georgia,serif; }
+    h3 { margin:0 0 8px; font-size:1rem; }
+    .num { display:inline-grid; place-items:center; width:32px; height:32px; margin-bottom:18px; color:#fff; background:var(--sage-dark); border-radius:11px; font-weight:800; }
+    .checklist { display:grid; gap:11px; margin:18px 0 0; padding:0; list-style:none; }
+    .checklist li { display:flex; gap:11px; align-items:flex-start; }
+    .check { flex:0 0 22px; width:22px; height:22px; margin-top:2px; display:grid; place-items:center; border-radius:50%; color:#fff; background:var(--sage); font-size:.78rem; font-weight:900; }
+    .missing { background:var(--amber-bg); border-color:#f0d7af; }
+    .missing .check { background:#d88a2c; }
+    code { padding:2px 6px; border-radius:6px; color:#244e39; background:#edf3ed; font-size:.9em; }
+    pre { overflow:auto; padding:16px; border-radius:14px; background:#17231c; color:#e9f3e9; }
+    footer { padding:28px 0 54px; color:var(--muted); border-top:1px solid var(--line); font-size:.9rem; }
+    @media (max-width:760px) { header { padding:48px 0 32px; } .wrap { width:min(100% - 26px,1120px); } .card,.card.wide { grid-column:span 12; padding:22px; } h1 { font-size:3.2rem; } }
+  </style>
+</head>
+<body>
+  <header class="wrap">
+    <div class="eyebrow">Patients Compass · Integration guide</div>
+    <h1>Shopify, configured with care.</h1>
+    <p class="lead">A practical checklist for connecting the Patients Compass checkout adapter to the <strong>s064cx-hu</strong> Shopify store, enabling recurring billing permissions, and validating secure webhook delivery.</p>
+    <div class="status" aria-label="Current integration status">
+      <span class="pill"><span class="dot"></span> Store identity verified</span>
+      <span class="pill"><span class="dot"></span> orders/paid registered</span>
+      <span class="pill"><span class="dot amber"></span> Selling-plan scopes pending</span>
+    </div>
+  </header>
+  <main class="wrap">
+    <section class="grid" aria-label="Shopify integration steps">
+      <article class="card"><div class="num">01</div><h2>Confirm the store</h2><p>Verify the active connector returns <code>s064cx-hu.myshopify.com</code> before making any catalog or billing changes. Keep the permanent Shopify domain separate from the public Patients Compass domain.</p></article>
+      <article class="card"><div class="num">02</div><h2>Update app permissions</h2><p>For an organization-owned app, update permissions in the Shopify Partner Dashboard. For a custom app, use Shopify Admin → Settings → Apps and sales channels → Develop apps.</p></article>
+      <article class="card wide"><div class="num">03</div><h2>Required permission checklist</h2><ul class="checklist">
+        <li><span class="check">✓</span><span><strong><code>write_products</code></strong><br>Attach selling-plan groups to the Monthly and Yearly products.</span></li>
+        <li class="missing"><span class="check">!</span><span><strong><code>write_purchase_options</code></strong> or <code>write_own_subscription_contracts</code><br>Required before Shopify will create recurring selling plans.</span></li>
+        <li class="missing"><span class="check">!</span><span><strong>Order-information management</strong><br>Shopify may require this app permission for purchase-option operations.</span></li>
+        <li><span class="check">✓</span><span><strong>Storefront checkout scopes</strong><br><code>unauthenticated_read_product_listings</code>, <code>unauthenticated_read_checkouts</code>, and <code>unauthenticated_write_checkouts</code>.</span></li>
+        <li class="missing"><span class="check">!</span><span><strong>Storefront API / Headless capability</strong><br>Enable the Storefront-capable app or sales-channel configuration before creating a Storefront token.</span></li>
+      </ul></article>
+      <article class="card"><div class="num">04</div><h2>Register the webhook</h2><p>Use one JSON webhook for payment confirmation:</p><pre><code>POST /api/shopify/webhook
+Topic: ORDERS_PAID
+Format: JSON</code></pre><p>The endpoint is already registered at <code>https://thepatientscompass.com/api/shopify/webhook</code>.</p></article>
+      <article class="card"><div class="num">05</div><h2>Protect server secrets</h2><p>Keep these values in encrypted server-side configuration, never in <code>VITE_</code> client variables:</p><ul class="checklist"><li><span class="check">✓</span><span><code>SHOPIFY_WEBHOOK_SECRET</code></span></li><li><span class="check">✓</span><span><code>SHOPIFY_STOREFRONT_ACCESS_TOKEN</code></span></li><li><span class="check">✓</span><span>Monthly/yearly variant and selling-plan IDs</span></li></ul></article>
+      <article class="card wide"><div class="num">06</div><h2>Verify before launch</h2><p>Run the read-only scope checker with a server-side Admin API token. It prints scope names and status but never prints the token.</p><pre><code>cd /home/ubuntu/skills/shopify-patients-compass-setup
+export SHOPIFY_ADMIN_STORE_DOMAIN=s064cx-hu.myshopify.com
+export SHOPIFY_ADMIN_ACCESS_TOKEN='server-side-token'
+python3 scripts/check_shopify_scopes.py</code></pre><p>Then send a signed mock <code>orders/paid</code> payload. Expect HTTP 200, and confirm that repeating the same webhook ID is ignored by idempotency protection.</p></article>
+    </section>
+  </main>
+  <footer><div class="wrap">Patients Compass · Shopify integration checklist · Keep tokens, webhook secrets, and customer data out of logs and source control.</div></footer>
+</body>
+</html>

@@ -1,0 +1,286 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+:root {
+  --primary: #7E9A85;
+  --primary-foreground: #FFFFFF;
+  --sidebar-primary: #7E9A85;
+  --sidebar-primary-foreground: #FFFFFF;
+  --radius: 1.25rem;
+  --background: #F9F6F0;
+  --foreground: #2C2A29;
+  --card: #FFFFFF;
+  --card-foreground: #2C2A29;
+  --popover: #FFFFFF;
+  --popover-foreground: #2C2A29;
+  --secondary: #EBE6DC;
+  --secondary-foreground: #5C5A59;
+  --muted: #F5F1E9;
+  --muted-foreground: #9E9A90;
+  --accent: #E2DCD3;
+  --accent-foreground: #2C2A29;
+  --destructive: #D48C70;
+  --destructive-foreground: #FFFFFF;
+  --border: #EBE6DC;
+  --input: #EBE6DC;
+  --ring: #7E9A85;
+
+  /* Chart palette — warm clinical luxury */
+  --chart-1: #7E9A85;
+  --chart-2: #D6A77A;
+  --chart-3: #B98C9B;
+  --chart-4: #8FA8C8;
+  --chart-5: #C9B79C;
+
+  /* Sidebar */
+  --sidebar: #FFFFFF;
+  --sidebar-foreground: #2C2A29;
+  --sidebar-accent: #F5F1E9;
+  --sidebar-accent-foreground: #2C2A29;
+  --sidebar-border: #EBE6DC;
+  --sidebar-ring: #7E9A85;
+}
+
+.dark {
+  --background: #1F2421;
+  --foreground: #F9F6F0;
+  --card: #2A302C;
+  --card-foreground: #F9F6F0;
+  --popover: #2A302C;
+  --popover-foreground: #F9F6F0;
+  --primary: #A8C3AF;
+  --primary-foreground: #1F2421;
+  --secondary: #343A36;
+  --secondary-foreground: #E8E2D8;
+  --muted: #2F3531;
+  --muted-foreground: #B9B2A8;
+  --accent: #3A413C;
+  --accent-foreground: #F9F6F0;
+  --destructive: #D48C70;
+  --destructive-foreground: #FFFFFF;
+  --border: #3A413C;
+  --input: #3A413C;
+  --ring: #A8C3AF;
+
+  /* Chart palette — dark mode */
+  --chart-1: #A8C3AF;
+  --chart-2: #D6A77A;
+  --chart-3: #C9A0B0;
+  --chart-4: #8FA8C8;
+  --chart-5: #C9B79C;
+
+  /* Sidebar — dark */
+  --sidebar: #2A302C;
+  --sidebar-foreground: #F9F6F0;
+  --sidebar-accent: #343A36;
+  --sidebar-accent-foreground: #F9F6F0;
+  --sidebar-border: #3A413C;
+  --sidebar-ring: #A8C3AF;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+  }
+  h1, h2, h3, h4, .font-serif {
+    font-family: 'Playfair Display', serif;
+  }
+  code, pre, .font-mono {
+    font-family: 'JetBrains Mono', monospace;
+  }
+}
+
+@layer components {
+  .container {
+    width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+
+  /* Use .min-safe instead of overriding Tailwind's .flex globally */
+  .min-safe {
+    min-height: 0;
+    min-width: 0;
+  }
+
+  @media (min-width: 1024px) {
+    .container {
+      max-width: 1280px;
+    }
+  }
+}
+
+/* ── Save Plan button animations ─────────────────────────────────────────── */
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position:  200% 0; }
+}
+
+@keyframes scale-in {
+  0%   { transform: scale(0.6); opacity: 0; }
+  60%  { transform: scale(1.15); opacity: 1; }
+  100% { transform: scale(1); }
+}
+
+/* ── Dashboard wellness plan card entrance ───────────────────────────────── */
+@keyframes wellness-card-in {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [style*="wellness-card-in"] {
+    animation: none !important;
+  }
+}
+
+/* ── Dashboard wellness plan card exit ───────────────────────────────────── */
+@keyframes wellness-card-out {
+  from {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+    max-height: 200px;
+  }
+  to {
+    opacity: 0;
+    transform: translateX(40px) scale(0.97);
+    max-height: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [style*="wellness-card-out"] {
+    animation: none !important;
+  }
+}
+
+/* ── Dashboard onboarding banner slide-down entrance ── */
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-slide-down {
+  animation: slideDown 0.35s cubic-bezier(0.23, 1, 0.32, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-slide-down {
+    animation: none;
+  }
+}
+
+/* ── Dashboard loading and interaction feedback ───────────────────────────── */
+@keyframes dashboard-surface-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes dashboard-skeleton-shimmer {
+  from { transform: translateX(-120%); }
+  to { transform: translateX(120%); }
+}
+
+@keyframes dashboard-loader-halo {
+  0%, 100% { opacity: 0; transform: scale(0.95); }
+  50% { opacity: 0.55; transform: scale(1.2); }
+}
+
+.dashboard-loading-surface {
+  animation: dashboard-surface-in 280ms cubic-bezier(0.23, 1, 0.32, 1) both;
+}
+
+.dashboard-skeleton {
+  position: relative;
+  overflow: hidden;
+  background-color: #ece8df;
+}
+
+.dashboard-skeleton::after {
+  position: absolute;
+  inset: 0;
+  content: "";
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.72), transparent);
+  animation: dashboard-skeleton-shimmer 1.25s cubic-bezier(0.23, 1, 0.32, 1) infinite;
+}
+
+.dashboard-loader-halo {
+  animation: dashboard-loader-halo 1.8s cubic-bezier(0.23, 1, 0.32, 1) infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dashboard-loading-surface,
+  .dashboard-skeleton::after,
+  .dashboard-loader-halo {
+    animation: none !important;
+  }
+
+  .group:hover {
+    transform: none;
+  }
+}

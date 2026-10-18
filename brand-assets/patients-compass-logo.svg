@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="320" viewBox="0 0 1200 320" role="img" aria-labelledby="title desc">
+  <title id="title">The Patient's Compass</title>
+  <desc id="desc">The Patient's Compass wordmark with a warm green compass emblem.</desc>
+  <rect width="1200" height="320" fill="#F8F5EE"/>
+  <g transform="translate(36 36)">
+    <circle cx="124" cy="124" r="112" fill="#64885F"/>
+    <circle cx="124" cy="124" r="88" fill="none" stroke="#F8F5EE" stroke-width="8" opacity=".95"/>
+    <path d="M124 22v28M124 198v28M22 124h28M198 124h28" stroke="#F8F5EE" stroke-width="8" stroke-linecap="round"/>
+    <path d="M124 55 163 163 124 145 85 163Z" fill="#F8F5EE"/>
+    <path d="m124 55 39 108-39-18Z" fill="#D57A6B"/>
+    <circle cx="124" cy="124" r="12" fill="#D57A6B" stroke="#F8F5EE" stroke-width="5"/>
+  </g>
+  <g fill="#2C312D" font-family="Georgia, 'Times New Roman', serif">
+    <text x="310" y="145" font-size="76" font-weight="700">The Patient's</text>
+    <text x="314" y="225" font-size="70" font-weight="400" fill="#64885F">Compass</text>
+  </g>
+  <path d="M316 252h610" stroke="#D57A6B" stroke-width="5" stroke-linecap="round" opacity=".9"/>
+</svg>
