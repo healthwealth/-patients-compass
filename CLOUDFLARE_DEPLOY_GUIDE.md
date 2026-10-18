@@ -20,7 +20,7 @@ Everything below happens in web dashboards (Cloudflare, GitHub, Manus, Stripe, G
 ## 2. Put the code on GitHub
 
 1. Go to **github.com/new**. Name it `patients-compass`, choose **Private**, and leave every "add a file" box unticked. Click *Create repository*.
-2. Either let Claude push the code into it (tell Claude the repository name), or upload the contents of `patients-compass-cloudflare.zip` there.
+2. Tell Claude the repository name and Claude pushes the code into it (about 390 files — too many for GitHub's drag-and-drop upload). Anyone with the code and `git` can also push it there.
 
 ## 3. Create the Worker from GitHub
 
