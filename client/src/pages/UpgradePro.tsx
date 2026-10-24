@@ -1,7 +1,6 @@
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Check, ArrowLeft, Loader2, Gift } from "lucide-react";
 import { TrialCountdown } from "@/components/TrialCountdown";
@@ -10,6 +9,8 @@ import { trpc } from "@/lib/trpc";
 import { useState } from "react";
 import { toast } from "sonner";
 import * as gtm from "@/lib/gtm";
+import { useProCheckout } from "@/hooks/useProCheckout";
+import { getLoginUrl } from "@/const";
 
 const PLANS = [
   {
@@ -67,35 +68,8 @@ const PLANS = [
 
 export default function UpgradePro() {
   const { user, isAuthenticated } = useAuth();
-  const [loadingPlan, setLoadingPlan] = useState<"monthly" | "yearly" | null>(null);
-  const [guestEmail, setGuestEmail] = useState("");
-  const [showEmailForm, setShowEmailForm] = useState(false);
-  const [selectedPlan, setSelectedPlan] = useState<"monthly" | "yearly" | null>(null);
+  const { startCheckout, loadingPlan } = useProCheckout();
   
-  const createCheckout = trpc.shopifyCheckout.createCart.useMutation({
-    onSuccess: (data) => {
-      if (data.checkoutUrl) {
-        window.location.href = data.checkoutUrl;
-      }
-    },
-    onError: (error) => {
-      toast.error(error.message || "Failed to create checkout session");
-      setLoadingPlan(null);
-    },
-  });
-
-  const createGuestCheckout = trpc.shopifyCheckout.createCart.useMutation({
-    onSuccess: (data) => {
-      if (data.checkoutUrl) {
-        window.location.href = data.checkoutUrl;
-      }
-    },
-    onError: (error) => {
-      toast.error(error.message || "Failed to create checkout session");
-      setLoadingPlan(null);
-    },
-  });
-
   const startTrialMutation = trpc.trial.startTrial.useMutation({
     onSuccess: () => {
       window.location.reload();
@@ -107,37 +81,18 @@ export default function UpgradePro() {
     if (isAuthenticated) {
       startTrialMutation.mutate();
     } else {
-      // For guests, show email form then start trial
-      setSelectedPlan("monthly");
-      setShowEmailForm(true);
+      // The free trial needs an account; come back here after signing in.
+      window.location.href = getLoginUrl("/upgrade-pro");
     }
   };
 
   const handleUpgrade = async (plan: "monthly" | "yearly") => {
     gtm.trackFeatureUsage("pricing", `upgrade_${plan}`);
-    if (isAuthenticated) {
-      setLoadingPlan(plan);
-      createCheckout.mutate({ plan, origin: window.location.origin });
-    } else {
-      setSelectedPlan(plan);
-      setShowEmailForm(true);
-    }
+    startCheckout(plan);
   };
 
-  const handleGuestCheckout = async () => {
-    if (!selectedPlan) {
-      toast.error("Please select a subscription plan");
-      return;
-    }
-    if (!guestEmail.trim() || !guestEmail.includes("@")) {
-      toast.error("Please enter the email used for your Shopify subscription.");
-      return;
-    }
 
-    gtm.trackFeatureUsage("pricing", `guest_checkout_${selectedPlan}`);
-    setLoadingPlan(selectedPlan);
-    createGuestCheckout.mutate({ plan: selectedPlan, origin: window.location.origin, email: guestEmail.trim() });
-  };
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#F9F6F0] to-[#EBE6DC] py-12 px-4">
@@ -233,66 +188,6 @@ export default function UpgradePro() {
           ))}
         </div>
 
-        {/* Guest Checkout Modal */}
-        {showEmailForm && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-            <Card className="w-full max-w-md border-[#EBE6DC] bg-white">
-                <CardHeader>
-                  <CardTitle className="text-[#2C2A29]">Complete Your Purchase</CardTitle>
-                  <CardDescription>
-                  Continue to Shopify's secure checkout, where you will provide the email used for your subscription.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <label htmlFor="shopify-guest-email" className="text-sm font-medium text-[#2C2A29]">Email for your subscription</label>
-                  <Input
-                    id="shopify-guest-email"
-                    type="email"
-                    value={guestEmail}
-                    onChange={(event) => setGuestEmail(event.target.value)}
-                    placeholder="you@example.com"
-                    autoComplete="email"
-                    disabled={loadingPlan !== null}
-                  />
-                </div>
-                <div className="flex gap-3 pt-4">
-                  <Button
-                    variant="outline"
-                    className="flex-1 border-[#EBE6DC] text-[#2C2A29] hover:bg-[#F9F6F0]"
-                      onClick={() => {
-                        setShowEmailForm(false);
-                        setSelectedPlan(null);
-                      setLoadingPlan(null);
-                    }}
-                    disabled={loadingPlan !== null}
-                  >
-                    Cancel
-                  </Button>
-                  <Button
-                    className="flex-1 bg-[#D48C70] hover:bg-[#C27A5B] text-white"
-                    onClick={handleGuestCheckout}
-                    disabled={loadingPlan !== null}
-                  >
-                    {loadingPlan ? (
-                      <>
-                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        Processing...
-                      </>
-                    ) : (
-                      "Continue to Payment"
-                    )}
-                  </Button>
-                </div>
-
-                <p className="text-xs text-[#5C5A59] text-center pt-2">
-                  Your payment is secure and processed by Shopify Payments. We'll never store your full payment details.
-                </p>
-              </CardContent>
-            </Card>
-          </div>
-        )}
-
         <Card className="border-[#EBE6DC] bg-white">
           <CardHeader>
             <CardTitle className="text-[#2C2A29]">Frequently Asked Questions</CardTitle>
@@ -304,7 +199,7 @@ export default function UpgradePro() {
             </div>
             <div>
               <h3 className="font-semibold text-[#2C2A29] mb-2">What payment methods do you accept?</h3>
-              <p className="text-[#5C5A59]">We accept supported payment methods through Shopify Payments. Payment details are handled by Shopify.</p>
+              <p className="text-[#5C5A59]">We accept major cards and wallets through Stripe. Payment details are handled by Stripe, never stored on our site.</p>
             </div>
             <div>
               <h3 className="font-semibold text-[#2C2A29] mb-2">Is there a free trial?</h3>

@@ -6,6 +6,7 @@ import { getDb } from "../db";
 import { users } from "../../drizzle/schema";
 import { eq } from "drizzle-orm";
 import { extractDocumentText, supportedDocumentTypes } from "../lib/documentText";
+import { hasProAccess } from "../lib/proAccess";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -98,6 +99,7 @@ async function checkAndIncrementQueryCount(userId: number): Promise<{
   const [user] = await db
     .select({
       subscriptionStatus: users.subscriptionStatus,
+      role: users.role,
       aiQueryCount: users.aiQueryCount,
       aiQueryDate: users.aiQueryDate,
     })
@@ -109,9 +111,9 @@ async function checkAndIncrementQueryCount(userId: number): Promise<{
     throw new TRPCError({ code: "UNAUTHORIZED", message: "User not found." });
   }
 
-  const isPro = user.subscriptionStatus === "active";
+  const isPro = hasProAccess(user);
 
-  // Pro users have unlimited access
+  // Pro users and site admins have unlimited access
   if (isPro) {
     return { queriesUsed: 0, queriesRemaining: Infinity, isPro: true };
   }
@@ -255,6 +257,7 @@ export const medicalAssistantRouter = router({
     const [user] = await db
       .select({
         subscriptionStatus: users.subscriptionStatus,
+        role: users.role,
         aiQueryCount: users.aiQueryCount,
         aiQueryDate: users.aiQueryDate,
       })
@@ -266,7 +269,7 @@ export const medicalAssistantRouter = router({
       return { queriesUsed: 0, queriesRemaining: FREE_DAILY_LIMIT, isPro: false, dailyLimit: FREE_DAILY_LIMIT };
     }
 
-    const isPro = user.subscriptionStatus === "active";
+    const isPro = hasProAccess(user);
     if (isPro) {
       return { queriesUsed: 0, queriesRemaining: Infinity, isPro: true, dailyLimit: FREE_DAILY_LIMIT };
     }

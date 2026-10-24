@@ -66,7 +66,6 @@ import {
 import { BIOMARKERS, COMPETITORS, CASE_STUDIES, IMAGES, BOOK_EXCERPTS } from "../const";
 import { toast } from "sonner";
 import { exportDoctorLetterPDF } from "@/lib/pdfExport";
-import ShopifyProductEmbed from "@/components/ShopifyProductEmbed";
 
 export default function Home() {
   const heroVideoRef = useRef<HTMLVideoElement>(null);
@@ -77,6 +76,8 @@ export default function Home() {
   // The userAuth hooks provides authentication state
   // To implement login/logout functionality, simply call logout() or redirect to getLoginUrl()
   let { user, loading, error, isAuthenticated, logout } = useAuth();
+  const { data: homeSubStatus } = trpc.subscription.getStatus.useQuery(undefined, { enabled: isAuthenticated });
+  const hasPro = homeSubStatus?.isPro ?? false;
 
   // 1. Quiz State
   const [quizStep, setQuizStep] = useState<number>(0);
@@ -1047,9 +1048,11 @@ export default function Home() {
                 <Button variant="outline" className="border-[#7E9A85] text-[#7E9A85] hover:bg-[#7E9A85]/10 rounded-xl text-xs" onClick={() => window.location.href = "/dashboard"}>
                   Update Dashboard
                 </Button>
-                <Button variant="outline" className="border-[#D48C70] text-[#D48C70] hover:bg-[#D48C70]/10 rounded-xl text-xs" onClick={() => window.location.href = "/pricing"}>
-                  Upgrade to Pro
-                </Button>
+                {!hasPro && (
+                  <Button variant="outline" className="border-[#D48C70] text-[#D48C70] hover:bg-[#D48C70]/10 rounded-xl text-xs" onClick={() => window.location.href = "/pricing"}>
+                    Upgrade to Pro
+                  </Button>
+                )}
                 <Button variant="outline" className="border-[#EBE6DC] text-[#5C5A59] hover:bg-[#EBE6DC]/40 rounded-xl text-xs" onClick={() => logout()}>
                   Sign Out
                 </Button>
@@ -1373,9 +1376,11 @@ export default function Home() {
                     <Button variant="outline" className="border-[#7E9A85] text-[#7E9A85] hover:bg-[#7E9A85]/10 rounded-xl w-full justify-center text-xs" onClick={() => { setMobileMenuOpen(false); window.location.href = "/dashboard"; }}>
                       My Dashboard
                     </Button>
-                    <Button variant="outline" className="border-[#D48C70] text-[#D48C70] hover:bg-[#D48C70]/10 rounded-xl w-full justify-center text-xs" onClick={() => { setMobileMenuOpen(false); window.location.href = "/pricing"; }}>
-                      Upgrade to Pro
-                    </Button>
+                    {!hasPro && (
+                      <Button variant="outline" className="border-[#D48C70] text-[#D48C70] hover:bg-[#D48C70]/10 rounded-xl w-full justify-center text-xs" onClick={() => { setMobileMenuOpen(false); window.location.href = "/pricing"; }}>
+                        Upgrade to Pro
+                      </Button>
+                    )}
                     <Button variant="outline" className="border-[#EBE6DC] text-[#5C5A59] hover:bg-[#EBE6DC]/40 rounded-xl w-full justify-center text-xs" onClick={() => { setMobileMenuOpen(false); logout(); }}>
                       Sign Out
                     </Button>
@@ -1514,31 +1519,48 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Shopify plans — embedded checkout */}
+      {/* Pro plans — Stripe checkout starts on /pricing (sign-in first, then checkout) */}
+      {!hasPro && (
       <section id="plans" aria-labelledby="plans-title" className="border-b border-[#EBE6DC] bg-white py-16 sm:py-20">
         <div className="container mx-auto max-w-7xl px-4">
           <div className="mx-auto mb-10 max-w-3xl text-center">
             <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-[#BFD0C0] bg-[#F3F8F3] px-3 py-1 text-xs font-semibold uppercase tracking-[0.12em] text-[#6F8D78]">
-              <ShieldCheck className="h-3.5 w-3.5" aria-hidden="true" /> Secure Shopify checkout
+              <ShieldCheck className="h-3.5 w-3.5" aria-hidden="true" /> Secure Stripe checkout
             </div>
-            <h2 id="plans-title" className="text-3xl font-serif font-bold text-[#2C2A29] sm:text-4xl">Choose the support that fits your household</h2>
-            <p className="mt-3 text-base leading-relaxed text-[#5C5A59]">Review the plan details and add your preferred Patients Compass subscription to the Shopify checkout without leaving this page.</p>
+            <h2 id="plans-title" className="text-3xl font-serif font-bold text-[#2C2A29] sm:text-4xl">Choose the support that fits you</h2>
+            <p className="mt-3 text-base leading-relaxed text-[#5C5A59]">Pro unlocks unlimited Health Companion questions, AI lab report analysis, trend tracking and your doctor's letter. Cancel any time.</p>
           </div>
-          <div className="grid gap-6 lg:grid-cols-3">
-            <div className="rounded-3xl border border-[#EBE6DC] bg-[#F9F6F0] p-4 shadow-sm sm:p-5">
-              <ShopifyProductEmbed productId="10818193850533" ariaLabel="Patients Compass Pro Monthly embedded checkout" />
+          <div className="mx-auto grid max-w-4xl gap-6 md:grid-cols-2">
+            <div className="flex flex-col rounded-3xl border border-[#EBE6DC] bg-[#F9F6F0] p-6 shadow-sm sm:p-8">
+              <h3 className="text-xl font-serif font-bold text-[#2C2A29]">Pro Monthly</h3>
+              <p className="mt-2 flex items-end gap-1"><span className="text-4xl font-serif font-bold text-[#2C2A29]">$9</span><span className="mb-1 text-sm text-[#9E9A90]">/ month</span></p>
+              <ul className="mt-5 flex-1 space-y-2 text-sm text-[#2C2A29]">
+                <li className="flex items-center gap-2"><Check className="h-4 w-4 shrink-0 text-[#7E9A85]" aria-hidden="true" /> Unlimited Health Companion</li>
+                <li className="flex items-center gap-2"><Check className="h-4 w-4 shrink-0 text-[#7E9A85]" aria-hidden="true" /> AI lab report analysis</li>
+                <li className="flex items-center gap-2"><Check className="h-4 w-4 shrink-0 text-[#7E9A85]" aria-hidden="true" /> Cancel any time</li>
+              </ul>
+              <Link href="/pricing?plan=monthly">
+                <Button className="mt-6 w-full rounded-xl bg-[#7E9A85] py-5 text-sm font-semibold text-white hover:bg-[#6A8571]">Choose monthly <ArrowRight className="ml-2 h-4 w-4" /></Button>
+              </Link>
             </div>
-            <div className="rounded-3xl border-2 border-[#D48C70]/45 bg-[#FFF9F5] p-4 shadow-md sm:p-5">
-              <div className="mb-3 inline-flex rounded-full bg-[#D48C70] px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-white">Best annual value</div>
-              <ShopifyProductEmbed productId="10818195357861" ariaLabel="Patients Compass Pro Yearly embedded checkout" />
-            </div>
-            <div className="rounded-3xl border border-[#EBE6DC] bg-[#F9F6F0] p-4 shadow-sm sm:p-5">
-              <ShopifyProductEmbed productId="10821029560485" ariaLabel="Patients Compass Family Plan embedded checkout" />
+            <div className="flex flex-col rounded-3xl border-2 border-[#D48C70]/45 bg-[#FFF9F5] p-6 shadow-md sm:p-8">
+              <div className="mb-3 inline-flex w-fit rounded-full bg-[#D48C70] px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-white">Best annual value</div>
+              <h3 className="text-xl font-serif font-bold text-[#2C2A29]">Pro Yearly</h3>
+              <p className="mt-2 flex items-end gap-1"><span className="text-4xl font-serif font-bold text-[#2C2A29]">$99.99</span><span className="mb-1 text-sm text-[#9E9A90]">/ year</span></p>
+              <ul className="mt-5 flex-1 space-y-2 text-sm text-[#2C2A29]">
+                <li className="flex items-center gap-2"><Check className="h-4 w-4 shrink-0 text-[#7E9A85]" aria-hidden="true" /> Everything in Monthly</li>
+                <li className="flex items-center gap-2"><Check className="h-4 w-4 shrink-0 text-[#7E9A85]" aria-hidden="true" /> Just $8.33 a month, billed yearly</li>
+                <li className="flex items-center gap-2"><Check className="h-4 w-4 shrink-0 text-[#7E9A85]" aria-hidden="true" /> Save $8.01 a year</li>
+              </ul>
+              <Link href="/pricing?plan=yearly">
+                <Button className="mt-6 w-full rounded-xl bg-[#D48C70] py-5 text-sm font-semibold text-white hover:bg-[#C27A5F]">Choose yearly <ArrowRight className="ml-2 h-4 w-4" /></Button>
+              </Link>
             </div>
           </div>
           <p className="mx-auto mt-6 max-w-3xl text-center text-xs leading-relaxed text-[#7A756E]">Patients Compass provides educational support and preparation tools. It does not diagnose, treat, or replace a licensed healthcare professional.</p>
         </div>
       </section>
+      )}
 
       {/* Featured family resource */}
       <section aria-labelledby="super-kids-resource-title" className="border-b border-[#EBE6DC] bg-[#FFF9F0] py-10 sm:py-14">

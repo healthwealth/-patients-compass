@@ -409,13 +409,13 @@ export default function SignIn() {
                 variant="outline"
                 className="w-full border-[#D48C70] text-[#D48C70] hover:bg-[#D48C70]/5 rounded-xl font-semibold bg-transparent"
               >
-                Upgrade to Pro — No Account Needed
+                See Pro plans
               </Button>
             </Link>
           </div>
 
           <p className="text-center text-xs text-[#9A9896] mt-4">
-            Pro access via Shopify Payments works independently of sign-in.
+            Pro is $9/month or $99.99/year. Sign in or create a free account, then upgrade through secure Stripe checkout.
           </p>
         </CardContent>
       </Card>

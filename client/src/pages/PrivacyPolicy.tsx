@@ -30,7 +30,7 @@ export default function PrivacyPolicy() {
                 <li><strong>Health Information:</strong> Lab results, biomarker data, health history (provided voluntarily)</li>
                 <li><strong>Usage Data:</strong> Pages visited, time spent, features used, and interactions with the Service</li>
                 <li><strong>Device Information:</strong> IP address, browser type, operating system, and device identifiers</li>
-                <li><strong>Payment Information:</strong> Processed securely through Shopify Payments (we do not store full payment details)</li>
+                <li><strong>Payment Information:</strong> Processed securely through Stripe (we do not store full payment details)</li>
               </ul>
             </section>
 
@@ -55,7 +55,7 @@ export default function PrivacyPolicy() {
               <p>We may share information we have collected about you in certain situations:</p>
               <ul className="list-disc list-inside space-y-2 ml-4">
                 <li><strong>By Law or to Protect Rights:</strong> If required by law or if we believe in good faith that disclosure is necessary to protect our rights</li>
-                <li><strong>Third-Party Service Providers:</strong> We may share your information with vendors, consultants, and service providers who assist us (Shopify Payments for billing, email providers, analytics services)</li>
+                <li><strong>Third-Party Service Providers:</strong> We may share your information with vendors, consultants, and service providers who assist us (Stripe for billing, email providers, analytics services)</li>
                 <li><strong>Business Transfers:</strong> If we are involved in a merger, acquisition, or asset sale, your information may be transferred</li>
                 <li><strong>With Your Consent:</strong> We may disclose your information with your explicit consent for any other purpose</li>
               </ul>

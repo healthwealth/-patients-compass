@@ -469,7 +469,7 @@ export default function Features() {
                   {
                     step: 3,
                     title: "Enter Payment Details",
-                    description: "You'll be redirected to our secure Shopify Payments checkout page.",
+                    description: "You'll be redirected to our secure Stripe checkout page.",
                     action: "No account sign-in required",
                   },
                   {

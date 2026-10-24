@@ -81,7 +81,9 @@ export function DashboardSettingsModal({ open, onOpenChange }: DashboardSettings
     subscription?.status === "active" || subscription?.status === "canceled" || subscription?.status === "past_due"
       ? subscription.status
       : "free";
-  const badge = getSubscriptionBadge(status, subscription?.plan);
+  const badge = subscription?.isOwner
+    ? { label: "Owner", tone: "sage" as const }
+    : getSubscriptionBadge(status, subscription?.plan);
   const hasSubscription = Boolean(subscription?.shopifyCustomerId || subscription?.stripeCustomerId);
   const hasShopifySubscription = Boolean(subscription?.shopifyCustomerId);
   const hasLegacyStripeSubscription = Boolean(subscription?.stripeCustomerId && !hasShopifySubscription);
@@ -124,7 +126,7 @@ export function DashboardSettingsModal({ open, onOpenChange }: DashboardSettings
             <div className="flex items-start justify-between gap-3">
               <div>
                 <p className="flex items-center gap-1.5 text-sm font-semibold text-[#302D2A]"><CreditCard className="h-4 w-4 text-[#6F8C76]" /> Subscription</p>
-                <p className="mt-1 text-xs leading-relaxed text-[#817B73]">Manage billing and plan changes through the secure Shopify Payments checkout and customer account.</p>
+                <p className="mt-1 text-xs leading-relaxed text-[#817B73]">Manage billing and plan changes securely through Stripe.</p>
               </div>
               <Badge className="shrink-0 border border-[#7E9A85]/25 bg-[#7E9A85]/10 text-[10px] font-bold uppercase tracking-wide text-[#5F7B67]">{badge.label}</Badge>
             </div>

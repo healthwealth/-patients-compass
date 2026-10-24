@@ -228,7 +228,9 @@ export default function Dashboard() {
     subscription?.status === "past_due"
       ? subscription.status
       : "free";
-  const subscriptionBadge = getSubscriptionBadge(subscriptionStatus, subscription?.plan);
+  const subscriptionBadge = subscription?.isOwner
+    ? { label: "Owner", tone: "sage" as const }
+    : getSubscriptionBadge(subscriptionStatus, subscription?.plan);
 
   const [referralLinkCopied, setReferralLinkCopied] = useState(false);
 

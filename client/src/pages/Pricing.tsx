@@ -1,5 +1,5 @@
 import SEO from "@/components/SEO";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -21,7 +21,7 @@ import { useState as useMenuState } from "react";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { toast } from "sonner";
-import ShopifyProductEmbed from "@/components/ShopifyProductEmbed";
+import { useProCheckout, type ProPlan } from "@/hooks/useProCheckout";
 
 const FREE_FEATURES = [
   { text: "Symptom Quiz & Biomarker Recommendations", included: true },
@@ -54,43 +54,17 @@ const PRO_FEATURES = [
 
 export default function Pricing() {
   const { isAuthenticated } = useAuth();
-  const [billingCycle, setBillingCycle] = useState<"monthly" | "yearly">("yearly");
-  const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
+  const [billingCycle, setBillingCycle] = useState<"monthly" | "yearly">(() => {
+    const plan = new URLSearchParams(window.location.search).get("plan");
+    return plan === "monthly" ? "monthly" : "yearly";
+  });
+  const { startCheckout, loadingPlan } = useProCheckout();
   const [newsletterEmail, setNewsletterEmail] = useState("");
   const [newsletterLoading, setNewsletterLoading] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useMenuState(false);
 
   const { data: subStatus } = trpc.subscription.getStatus.useQuery(undefined, {
     enabled: isAuthenticated,
-  });
-
-  const createCheckout = trpc.shopifyCheckout.createCart.useMutation({
-    onSuccess: (data) => {
-      if (data.checkoutUrl) {
-        toast.success("Redirecting to secure Shopify checkout…");
-        window.location.href = data.checkoutUrl;
-      }
-      setLoadingPlan(null);
-    },
-    onError: (err) => {
-      toast.error(err.message || "Failed to start checkout. Please try again.");
-      setLoadingPlan(null);
-    },
-  });
-
-  // Guest checkout — works without login
-  const createGuestCheckout = trpc.shopifyCheckout.createCart.useMutation({
-    onSuccess: (data) => {
-      if (data.checkoutUrl) {
-        toast.success("Redirecting to secure Shopify checkout…");
-        window.location.href = data.checkoutUrl;
-      }
-      setLoadingPlan(null);
-    },
-    onError: (err) => {
-      toast.error(err.message || "Failed to start checkout. Please try again.");
-      setLoadingPlan(null);
-    },
   });
 
   const createPortal = trpc.subscription.createPortal.useMutation({
@@ -127,20 +101,31 @@ export default function Pricing() {
     });
   };
 
-  const handleUpgrade = (plan: "monthly" | "yearly") => {
-    setLoadingPlan(plan);
-    if (isAuthenticated) {
-      createCheckout.mutate({ plan, origin: window.location.origin });
-    } else {
-      createGuestCheckout.mutate({ plan, origin: window.location.origin });
-    }
-  };
+  const handleUpgrade = (plan: ProPlan) => startCheckout(plan);
 
   const handleManage = () => {
     createPortal.mutate({ origin: window.location.origin });
   };
 
   const isPro = subStatus?.isPro;
+  const isOwner = subStatus?.isOwner;
+
+  // Coming back from sign-in with ?plan=… resumes checkout once.
+  const resumedCheckout = useRef(false);
+  useEffect(() => {
+    if (resumedCheckout.current || !isAuthenticated || !subStatus) return;
+    const params = new URLSearchParams(window.location.search);
+    const plan = params.get("plan");
+    if (params.get("canceled")) {
+      resumedCheckout.current = true;
+      toast.info("Checkout canceled. You can upgrade any time.");
+      return;
+    }
+    if ((plan === "monthly" || plan === "yearly") && !subStatus.isPro) {
+      resumedCheckout.current = true;
+      startCheckout(plan);
+    }
+  }, [isAuthenticated, subStatus]);
 
   return (
     <div className="min-h-screen bg-[#F9F6F0] text-[#2C2A29]">
@@ -370,7 +355,11 @@ export default function Pricing() {
                 ))}
               </div>
 
-              {isPro ? (
+              {isOwner ? (
+                <div className="bg-[#7E9A85]/10 border border-[#7E9A85]/20 text-[#7E9A85] text-sm font-semibold text-center py-3 rounded-xl">
+                  ✓ Owner access: everything unlocked
+                </div>
+              ) : isPro ? (
                 <div className="space-y-3">
                   <div className="bg-[#7E9A85]/10 border border-[#7E9A85]/20 text-[#7E9A85] text-sm font-semibold text-center py-3 rounded-xl">
                     ✓ You are a Pro Member
@@ -386,17 +375,24 @@ export default function Pricing() {
                   </Button>
                 </div>
               ) : (
-                billingCycle === "monthly" ? (
-                  <ShopifyProductEmbed
-                    productId="10818193850533"
-                    ariaLabel="Monthly Pro Shopify checkout"
-                  />
-                ) : (
-                  <ShopifyProductEmbed
-                    productId="10818195357861"
-                    ariaLabel="Yearly Pro Shopify checkout"
-                  />
-                )
+                <div className="space-y-2">
+                  <Button
+                    className="w-full bg-[#7E9A85] hover:bg-[#6A8571] text-white rounded-xl py-5 text-sm font-semibold"
+                    onClick={() => handleUpgrade(billingCycle)}
+                    disabled={loadingPlan !== null}
+                  >
+                    {loadingPlan === billingCycle ? (
+                      <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                    ) : (
+                      <ArrowRight className="w-4 h-4 mr-2" />
+                    )}
+                    {billingCycle === "monthly" ? "Upgrade to Pro: $9/month" : "Upgrade to Pro: $99.99/year"}
+                  </Button>
+                  <p className="flex items-center justify-center gap-1.5 text-xs text-[#9E9A90]">
+                    <ShieldCheck className="w-3.5 h-3.5" />
+                    Secure checkout by Stripe. Cancel any time.
+                  </p>
+                </div>
               )}
             </CardContent>
           </Card>
@@ -406,7 +402,7 @@ export default function Pricing() {
         <div className="flex flex-col sm:flex-row items-center justify-center gap-6 text-sm text-[#5C5A59] border-t border-[#EBE6DC] pt-10">
           <div className="flex items-center gap-2">
             <ShieldCheck className="w-5 h-5 text-[#7E9A85]" />
-            <span>Secure checkout via Shopify Payments</span>
+            <span>Secure checkout by Stripe</span>
           </div>
           <div className="flex items-center gap-2">
             <Check className="w-5 h-5 text-[#7E9A85]" />

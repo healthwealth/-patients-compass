@@ -7,6 +7,7 @@ import { users } from "../../drizzle/schema";
 import { ENV } from "../_core/env";
 import { protectedProcedure, publicProcedure, router } from "../_core/trpc";
 import { TRPCError } from "@trpc/server";
+import { hasProAccess, isOwnerAccess } from "../lib/proAccess";
 
 function getStripe() {
   if (!ENV.stripeSecretKey) {
@@ -19,12 +20,13 @@ export const subscriptionRouter = router({
   /** Get current user's subscription status */
   getStatus: protectedProcedure.query(async ({ ctx }) => {
     const db = await getDb();
-    if (!db) return { status: "free", plan: null, isPro: false, stripeCustomerId: null, stripeSubscriptionId: null, shopifyCustomerId: null, shopifySubscriptionContractId: null };
+    if (!db) return { status: "free", plan: null, isPro: false, isOwner: false, stripeCustomerId: null, stripeSubscriptionId: null, shopifyCustomerId: null, shopifySubscriptionContractId: null };
     const [user] = await db.select().from(users).where(eq(users.id, ctx.user.id)).limit(1);
     return {
       status: user?.subscriptionStatus ?? "free",
       plan: user?.subscriptionPlan ?? null,
-      isPro: user?.subscriptionStatus === "active",
+      isPro: hasProAccess(user),
+      isOwner: isOwnerAccess(user),
       stripeCustomerId: user?.stripeCustomerId ?? null,
       stripeSubscriptionId: user?.stripeSubscriptionId ?? null,
       shopifyCustomerId: user?.shopifyCustomerId ?? null,

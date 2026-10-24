@@ -96,10 +96,18 @@ async function handleCheckoutSessionCompleted(
     const subscriptionId = typeof session.subscription === "string" ? session.subscription : session.subscription.id;
 
     // Find user by Stripe customer ID
-    const userRecords = await db
+    let userRecords = await db
       .select()
       .from(users)
       .where(eq(users.stripeCustomerId, customerId));
+
+    // Fallback: the signed-in checkout also records our user ID on the session.
+    if (!userRecords || userRecords.length === 0) {
+      const refId = Number(session.client_reference_id ?? session.metadata?.user_id ?? NaN);
+      if (Number.isInteger(refId) && refId > 0) {
+        userRecords = await db.select().from(users).where(eq(users.id, refId));
+      }
+    }
 
     if (!userRecords || userRecords.length === 0) {
       console.warn(`[Stripe Webhook] User not found for customer ${customerId}`);
@@ -108,12 +116,16 @@ async function handleCheckoutSessionCompleted(
 
     const user = userRecords[0];
 
-    // Update user subscription status
+    // Update user subscription status (and remember the customer for later events)
     await db
       .update(users)
       .set({
+        stripeCustomerId: customerId,
         stripeSubscriptionId: subscriptionId,
         subscriptionStatus: "active",
+        ...(session.metadata?.plan === "yearly" || session.metadata?.plan === "monthly"
+          ? { subscriptionPlan: session.metadata.plan }
+          : {}),
         updatedAt: new Date(),
       })
       .where(eq(users.id, user.id));
