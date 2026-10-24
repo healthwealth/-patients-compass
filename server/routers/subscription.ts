@@ -16,6 +16,37 @@ function getStripe() {
   return new Stripe(ENV.stripeSecretKey, { apiVersion: "2026-04-22.dahlia", httpClient: Stripe.createFetchHttpClient() });
 }
 
+/**
+ * Returns the configured Stripe price whose billing period matches the plan
+ * (month or year). Checking the interval means two swapped price IDs can never
+ * charge a monthly buyer the yearly price, or the other way round.
+ */
+async function resolvePriceId(stripe: Stripe, plan: "monthly" | "yearly"): Promise<string> {
+  const wanted = plan === "yearly" ? "year" : "month";
+  const monthly = (process.env.STRIPE_MONTHLY_PRICE_ID ?? "").trim();
+  const yearly = (process.env.STRIPE_YEARLY_PRICE_ID ?? "").trim();
+  const candidates = (plan === "yearly" ? [yearly, monthly] : [monthly, yearly]).filter(Boolean);
+  for (const id of candidates) {
+    const price = await stripe.prices.retrieve(id);
+    if (price.active && price.recurring?.interval === wanted) return price.id;
+  }
+  throw new TRPCError({
+    code: "INTERNAL_SERVER_ERROR",
+    message: `Stripe price not configured for plan: ${plan}`,
+  });
+}
+
+/** True when a saved customer ID no longer exists in this Stripe account (e.g. an old test customer). */
+async function customerIsUsable(stripe: Stripe, customerId: string): Promise<boolean> {
+  try {
+    const customer = await stripe.customers.retrieve(customerId);
+    return !("deleted" in customer && customer.deleted);
+  } catch (error) {
+    if (error instanceof Stripe.errors.StripeInvalidRequestError && error.code === "resource_missing") return false;
+    throw error;
+  }
+}
+
 export const subscriptionRouter = router({
   /** Get current user's subscription status */
   getStatus: protectedProcedure.query(async ({ ctx }) => {
@@ -49,7 +80,7 @@ export const subscriptionRouter = router({
       let customerId: string | undefined;
       if (db) {
         const [user] = await db.select().from(users).where(eq(users.id, ctx.user.id)).limit(1);
-        if (user?.stripeCustomerId) {
+        if (user?.stripeCustomerId && await customerIsUsable(stripe, user.stripeCustomerId)) {
           customerId = user.stripeCustomerId;
         } else {
           const customer = await stripe.customers.create({
@@ -64,17 +95,7 @@ export const subscriptionRouter = router({
         }
       }
 
-      const isYearly = input.plan === "yearly";
-      const priceId = isYearly
-        ? (process.env.STRIPE_YEARLY_PRICE_ID ?? "")
-        : (process.env.STRIPE_MONTHLY_PRICE_ID ?? "");
-
-      if (!priceId) {
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: `Stripe price ID not configured for plan: ${input.plan}`,
-        });
-      }
+      const priceId = await resolvePriceId(stripe, input.plan);
 
       const session = await stripe.checkout.sessions.create({
         customer: customerId,
@@ -133,17 +154,7 @@ export const publicCheckoutRouter = router({
     .mutation(async ({ input }) => {
       const stripe = getStripe();
 
-      const isYearly = input.plan === "yearly";
-      const priceId = isYearly
-        ? (process.env.STRIPE_YEARLY_PRICE_ID ?? "")
-        : (process.env.STRIPE_MONTHLY_PRICE_ID ?? "");
-
-      if (!priceId) {
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: `Stripe price ID not configured for plan: ${input.plan}`,
-        });
-      }
+      const priceId = await resolvePriceId(stripe, input.plan);
 
       const session = await stripe.checkout.sessions.create({
         mode: "subscription",

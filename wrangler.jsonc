@@ -57,7 +57,10 @@
     "ADMIN_EMAILS": "smkhit@gmail.com",
     "OWNER_EMAIL": "smkhit@gmail.com",
     "LEGACY_ASSET_ORIGIN": "https://patientsapp-ekwl3omj.manus.space,https://thepatientscompass.com",
-    "RESEND_SENDER_EMAIL": "noreply@thepatientscompass.com"
+    "RESEND_SENDER_EMAIL": "noreply@thepatientscompass.com",
+    // Stripe Pro prices (live). The site checks each price's billing period, so order can't cause a wrong charge.
+    "STRIPE_MONTHLY_PRICE_ID": "price_1UTwsJ2fAJ7mAgON7IyLvrnA",
+    "STRIPE_YEARLY_PRICE_ID": "price_1UTwsF2fAJ7mAgONxwU1kvZk"
   },
   "keep_vars": true
 }
