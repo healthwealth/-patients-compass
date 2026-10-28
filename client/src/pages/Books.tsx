@@ -861,82 +861,12 @@ export default function Books() {
         )}
       </main>
 
-      {/* Customer Reviews Section */}
-      <section className="bg-[#FEFDFB] border-t border-[#EBE6DC] py-16 mt-16">
-        <div className="container max-w-6xl mx-auto px-4">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-serif font-bold text-[#2C2A29] mb-3">What Readers Say</h2>
-            <p className="text-[#5C5A59] max-w-2xl mx-auto">Discover how Sonya's books have helped thousands of readers take control of their health and wellness journey.</p>
-          </div>
-          
-          <div className="grid md:grid-cols-3 gap-6">
-            {/* Review 1 */}
-            <div className="bg-white rounded-2xl border border-[#EBE6DC] p-6 shadow-sm hover:shadow-md transition-shadow">
-              <div className="flex items-center gap-1 mb-3">
-                {[...Array(5)].map((_, i) => (
-                  <Star key={i} className="w-4 h-4 fill-[#D4A574] text-[#D4A574]" />
-                ))}
-              </div>
-              <p className="text-[#5C5A59] text-sm leading-relaxed mb-4">"Finally, a book that explains lab results in plain English! This has completely changed how I understand my health. I now feel empowered to ask better questions at my doctor's appointments."</p>
-              <div className="flex items-center gap-2">
-                <div className="w-10 h-10 rounded-full bg-[#7E9A85]/20 flex items-center justify-center">
-                  <span className="text-[#7E9A85] font-bold text-sm">SM</span>
-                </div>
-                <div>
-                  <p className="font-semibold text-sm text-[#2C2A29]">Sarah M.</p>
-                  <p className="text-xs text-[#9E9A90]">Verified Purchase</p>
-                </div>
-              </div>
-            </div>
-            
-            {/* Review 2 */}
-            <div className="bg-white rounded-2xl border border-[#EBE6DC] p-6 shadow-sm hover:shadow-md transition-shadow">
-              <div className="flex items-center gap-1 mb-3">
-                {[...Array(5)].map((_, i) => (
-                  <Star key={i} className="w-4 h-4 fill-[#D4A574] text-[#D4A574]" />
-                ))}
-              </div>
-              <p className="text-[#5C5A59] text-sm leading-relaxed mb-4">"As a physician, I recommend this to all my patients who want to understand their test results better. Sonya makes complex medical concepts accessible and practical."</p>
-              <div className="flex items-center gap-2">
-                <div className="w-10 h-10 rounded-full bg-[#D48C70]/20 flex items-center justify-center">
-                  <span className="text-[#D48C70] font-bold text-sm">JP</span>
-                </div>
-                <div>
-                  <p className="font-semibold text-sm text-[#2C2A29]">Dr. James P.</p>
-                  <p className="text-xs text-[#9E9A90]">Verified Purchase</p>
-                </div>
-              </div>
-            </div>
-            
-            {/* Review 3 */}
-            <div className="bg-white rounded-2xl border border-[#EBE6DC] p-6 shadow-sm hover:shadow-md transition-shadow">
-              <div className="flex items-center gap-1 mb-3">
-                {[...Array(4)].map((_, i) => (
-                  <Star key={i} className="w-4 h-4 fill-[#D4A574] text-[#D4A574]" />
-                ))}
-                <Star className="w-4 h-4 text-[#D1C7BD]" />
-              </div>
-              <p className="text-[#5C5A59] text-sm leading-relaxed mb-4">"Very informative and well-written. The book breaks down complex health topics into digestible chapters. Perfect for anyone wanting to take charge of their wellness."</p>
-              <div className="flex items-center gap-2">
-                <div className="w-10 h-10 rounded-full bg-[#A39EBA]/20 flex items-center justify-center">
-                  <span className="text-[#A39EBA] font-bold text-sm">MT</span>
-                </div>
-                <div>
-                  <p className="font-semibold text-sm text-[#2C2A29]">Michael T.</p>
-                  <p className="text-xs text-[#9E9A90]">Verified Purchase</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* Newsletter Signup Section */}
       <section className="bg-gradient-to-r from-[#7E9A85] to-[#6B8574] py-16">
         <div className="container max-w-2xl mx-auto px-4">
           <div className="text-center">
             <h2 className="text-3xl font-serif font-bold text-white mb-3">Get Weekly Health Tips</h2>
-            <p className="text-white/90 mb-8 text-lg">Join thousands of readers receiving personalized health insights and wellness recommendations directly to your inbox.</p>
+            <p className="text-white/90 mb-8 text-lg">Get Sonya's plain-language lab and wellness tips, plus new book announcements, in your inbox.</p>
             
             <form onSubmit={(e) => {
               e.preventDefault();
