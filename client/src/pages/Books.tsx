@@ -327,7 +327,7 @@ const BOOKS: Book[] = [
     isbn: "979-8-88-654337-6",
     amazonUrl: "https://www.amazon.com/dp/B0GX2X9KLG",
     audibleUrl: "https://www.audible.com/pd/B0HLW8GHWF/?source_code=AUDFPWS0223189MWT-BK-ACX0-535144&ref=acx_bty_BK_ACX0_535144_rh_us",
-    coverUrl: "https://images-na.ssl-images-amazon.com/images/P/B0GX2X9KLG.01._SX480_.jpg",
+    coverUrl: "https://images-na.ssl-images-amazon.com/images/P/B0GX2X9KLG.01.LZZZZZZZ.jpg",
     featured: true,
     sampleExcerpt:
       "Seasonal eating is not just a trend — it is a science-backed strategy for optimizing your biomarkers throughout the year. Each season brings different nutritional needs...",
@@ -360,7 +360,7 @@ const BOOKS: Book[] = [
       "Understand glucose, A1C, and insulin resistance after 40, and build a practical, lab-guided plan to stabilize your blood sugar for good.",
     amazonUrl: "https://www.amazon.com/dp/B0H6RPCMTP",
     audibleUrl: "https://www.audible.com/pd/B0HJFK68YL/?source_code=AUDFPWS0223189MWT-BK-ACX0-530955&ref=acx_bty_BK_ACX0_530955_rh_us",
-    coverUrl: "https://images-na.ssl-images-amazon.com/images/P/B0H6RPCMTP.01._SX480_.jpg",
+    coverUrl: "https://images-na.ssl-images-amazon.com/images/P/B0H6RPCMTP.01.LZZZZZZZ.jpg",
     featured: false,
   },
   {
@@ -373,7 +373,7 @@ const BOOKS: Book[] = [
       "Use AI to track symptoms, understand your medical data, and take control of chronic conditions. A practical guide for the long haul.",
     amazonUrl: "https://www.amazon.com/dp/B0H4Q6K14L",
     audibleUrl: "https://www.audible.com/pd/B0HLVH9V2N/?source_code=AUDFPWS0223189MWT-BK-ACX0-535088&ref=acx_bty_BK_ACX0_535088_rh_us",
-    coverUrl: "https://images-na.ssl-images-amazon.com/images/P/B0H4Q6K14L.01._SX480_.jpg",
+    coverUrl: "https://images-na.ssl-images-amazon.com/images/P/B0H4Q6K14L.01.LZZZZZZZ.jpg",
     featured: false,
   },
   {
@@ -385,7 +385,7 @@ const BOOKS: Book[] = [
     description:
       "A Clinical Laboratory Scientist's guide to staying well through new risks, new technology, and new science.",
     amazonUrl: "https://www.amazon.com/dp/B0HMMRQP68",
-    coverUrl: "https://images-na.ssl-images-amazon.com/images/P/B0HMMRQP68.01._SX480_.jpg",
+    coverUrl: "https://images-na.ssl-images-amazon.com/images/P/B0HMMRQP68.01.LZZZZZZZ.jpg",
     featured: false,
     isNew: true,
   },
