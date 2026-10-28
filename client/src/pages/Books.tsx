@@ -13,6 +13,7 @@ import {
   BookOpen,
   ExternalLink,
   Star,
+  Headphones,
   ArrowLeft,
   Menu,
   X,
@@ -34,9 +35,11 @@ export interface Book {
   author: string;
   category: string;
   description: string;
-  pages: number;
-  isbn: string;
+  pages?: number;
+  isbn?: string;
   amazonUrl: string;
+  /** US Audible link (ACX bounty link) when an audiobook edition exists. */
+  audibleUrl?: string;
   coverUrl: string;
   featured: boolean;
   isNew?: boolean;
@@ -55,6 +58,7 @@ const BOOKS: Book[] = [
     pages: 203,
     isbn: "979-8-88-654321-0",
     amazonUrl: "https://www.amazon.com/PATIENTS-COMPASS-Understand-Hidden-Questions-ebook/dp/B0H1GZMB6K",
+    audibleUrl: "https://www.audible.com/pd/B0HNF5M8YP/?source_code=AUDFPWS0223189MWT-BK-ACX0-538164&ref=acx_bty_BK_ACX0_538164_rh_us",
     coverUrl: "/manus-storage/the-patient-s-compass_B0H1GZMB6K_2b45b9a1.jpg",
     featured: true,
     isNew: true,
@@ -72,6 +76,7 @@ const BOOKS: Book[] = [
     pages: 178,
     isbn: "979-8-88-654322-1",
     amazonUrl: "https://www.amazon.com/YOUR-LAB-TESTS-Understanding-Laboratory-ebook/dp/B0GZ83WG53/",
+    audibleUrl: "https://www.audible.com/pd/B0HNCM353T/?source_code=AUDFPWS0223189MWT-BK-ACX0-535357&ref=acx_bty_BK_ACX0_535357_rh_us",
     coverUrl: "/manus-storage/your-lab-tests_B0GZ83WG53_82baabd8.jpg",
     featured: true,
     isNew: true,
@@ -89,6 +94,7 @@ const BOOKS: Book[] = [
     pages: 156,
     isbn: "979-8-88-654323-2",
     amazonUrl: "https://www.amazon.com/Decode-Your-Blood-Work-After-ebook/dp/B0GZS1C6VR",
+    audibleUrl: "https://www.audible.com/pd/B0HJX83B87/?source_code=AUDFPWS0223189MWT-BK-ACX0-531137&ref=acx_bty_BK_ACX0_531137_rh_us",
     coverUrl: "/manus-storage/decode-your-blood-work-after-40_B0GZS1C6VR_1533b867.jpg",
     featured: false,
   },
@@ -103,6 +109,7 @@ const BOOKS: Book[] = [
     pages: 221,
     isbn: "979-8-88-654324-3",
     amazonUrl: "https://www.amazon.com/WOMANS-WELLNESS-AFTER-40-science-backed-ebook/dp/B0GLLHZG73/",
+    audibleUrl: "https://www.audible.com/pd/B0HL12LC8L/?source_code=AUDFPWS0223189MWT-BK-ACX0-533308&ref=acx_bty_BK_ACX0_533308_rh_us",
     coverUrl: "/manus-storage/woman-s-wellness-after-40_B0GLLHZG73_1410500d.jpg",
     featured: true,
     sampleExcerpt:
@@ -119,6 +126,7 @@ const BOOKS: Book[] = [
     pages: 189,
     isbn: "979-8-88-654325-4",
     amazonUrl: "https://www.amazon.com/Hormone-Reset-After-science-backed-synchronization/dp/B0GW61NWQL/",
+    audibleUrl: "https://www.audible.com/pd/B0HJDGKW92/?source_code=AUDFPWS0223189MWT-BK-ACX0-530777&ref=acx_bty_BK_ACX0_530777_rh_us",
     coverUrl: "/manus-storage/hormone-reset-after-40_B0GW61NWQL_6e2de06f.jpg",
     featured: true,
     sampleExcerpt:
@@ -135,6 +143,7 @@ const BOOKS: Book[] = [
     pages: 175,
     isbn: "979-8-88-654326-5",
     amazonUrl: "https://www.amazon.com/MEDITERRANEAN-DIET-LONGEVITY-Anti-Aging-Inflammation-ebook/dp/B0GZH1KY8S/",
+    audibleUrl: "https://www.audible.com/pd/B0HNHYGG9M/?source_code=AUDFPWS0223189MWT-BK-ACX0-538297&ref=acx_bty_BK_ACX0_538297_rh_us",
     coverUrl: "/manus-storage/mediterranean-diet-for-longevity_B0GZH1KY8S_5cca0ad2.jpg",
     featured: true,
   },
@@ -163,6 +172,7 @@ const BOOKS: Book[] = [
     pages: 128,
     isbn: "979-8-88-654328-7",
     amazonUrl: "https://www.amazon.com/Gelatin-Sustainable-Weight-Loss-Satiety/dp/B0GWF4KMXD/",
+    audibleUrl: "https://www.audible.com/pd/B0HNF1JKRJ/?source_code=AUDFPWS0223189MWT-BK-ACX0-538159&ref=acx_bty_BK_ACX0_538159_rh_us",
     coverUrl: "/manus-storage/gelatin-cover_268a3be3.jpg",
     featured: false,
   },
@@ -191,6 +201,7 @@ const BOOKS: Book[] = [
     pages: 161,
     isbn: "979-8-88-654330-9",
     amazonUrl: "https://www.amazon.com/TRANSFORM-YOUR-KITCHEN-WELLNESS-SANCTUARY/dp/B0GZ3D6VHD/",
+    audibleUrl: "https://www.audible.com/pd/B0HL9H5XXD/?source_code=AUDFPWS0223189MWT-BK-ACX0-533305&ref=acx_bty_BK_ACX0_533305_rh_us",
     coverUrl: "/manus-storage/transform-your-kitchen-into-a-wellness-sanctuary_B0GZ3D6VHD_2ef5b69a.jpg",
     featured: false,
   },
@@ -205,6 +216,7 @@ const BOOKS: Book[] = [
     pages: 172,
     isbn: "979-8-88-654331-0",
     amazonUrl: "https://www.amazon.com/My-Healthy-Child-Sonya-M-ebook/dp/B0H14BP3FQ/",
+    audibleUrl: "https://www.audible.com/pd/B0HKWPYGCF/?source_code=AUDFPWS0223189MWT-BK-ACX0-533487&ref=acx_bty_BK_ACX0_533487_rh_us",
     coverUrl: "/manus-storage/my-healthy-child_B0H14BP3FQ_8173c60e.jpg",
     featured: false,
   },
@@ -219,6 +231,7 @@ const BOOKS: Book[] = [
     pages: 183,
     isbn: "979-8-88-654332-1",
     amazonUrl: "https://www.amazon.com/Listen-Your-Body-Compassionate-Understanding-ebook/dp/B0GWTZW9HY/",
+    audibleUrl: "https://www.audible.com/pd/B0HKSY1TV4/?source_code=AUDFPWS0223189MWT-BK-ACX0-531160&ref=acx_bty_BK_ACX0_531160_rh_us",
     coverUrl: "/manus-storage/listen-to-your-body_B0GWTZW9HY_6a4f8ea0.jpg",
     featured: false,
   },
@@ -233,6 +246,7 @@ const BOOKS: Book[] = [
     pages: 134,
     isbn: "979-8-88-654333-2",
     amazonUrl: "https://www.amazon.com/YOUR-BLOOD-TYPE-EXPLAINED-Preventive-ebook/dp/B0GX33YVPK",
+    audibleUrl: "https://www.audible.com/pd/B0HJXXH7T2/?source_code=AUDFPWS0223189MWT-BK-ACX0-530419&ref=acx_bty_BK_ACX0_530419_rh_us",
     coverUrl: "/manus-storage/your-blood-type-explained_B0GX33YVPK_d5ba595f.jpg",
     featured: false,
   },
@@ -247,6 +261,7 @@ const BOOKS: Book[] = [
     pages: 215,
     isbn: "979-8-88-654334-3",
     amazonUrl: "https://www.amazon.com/dp/B0GW62KNZZ",
+    audibleUrl: "https://www.audible.com/pd/B0HHH14RKS/?source_code=AUDFPWS0223189MWT-BK-ACX0-529061&ref=acx_bty_BK_ACX0_529061_rh_us",
     coverUrl: "/manus-storage/your-blood-test-knowledge-book_B0GW62KNZZ_bd377673.jpg",
     featured: false,
     isNew: true,
@@ -264,6 +279,7 @@ const BOOKS: Book[] = [
     pages: 244,
     isbn: "979-8-88-654335-4",
     amazonUrl: "https://www.amazon.com/Your-Chronic-Disease-Lab-Guide-ebook/dp/B0GXPBKBS8",
+    audibleUrl: "https://www.audible.com/pd/B0HJN1MWBD/?source_code=AUDFPWS0223189MWT-BK-ACX0-531466&ref=acx_bty_BK_ACX0_531466_rh_us",
     coverUrl: "/manus-storage/your-chronic-disease-lab-guide_B0GXPBKBS8_1f816ca6.jpg",
     featured: false,
     sampleExcerpt:
@@ -280,6 +296,7 @@ const BOOKS: Book[] = [
     pages: 96,
     isbn: "979-8-88-654336-5",
     amazonUrl: "https://www.amazon.com/Healthy-Habits-Super-Kids-Activity-ebook/dp/B0H1W6GR84",
+    audibleUrl: "https://www.audible.com/pd/B0HM6GMJTW/?source_code=AUDFPWS0223189MWT-BK-ACX0-535795&ref=acx_bty_BK_ACX0_535795_rh_us",
     coverUrl: "/manus-storage/healthy-habits-for-super-kids_B0H1W6GR84_737712e2.jpg",
     featured: false,
   },
@@ -294,6 +311,7 @@ const BOOKS: Book[] = [
     pages: 48,
     isbn: "979-8-88-654338-7",
     amazonUrl: "https://www.amazon.com/MY-BODY-AMAZING-Magical-Introduction-ebook/dp/B0H2S2P494",
+    audibleUrl: "https://www.audible.com/pd/B0HJ6YDJKK/?source_code=AUDFPWS0223189MWT-BK-ACX0-530455&ref=acx_bty_BK_ACX0_530455_rh_us",
     coverUrl: "/manus-storage/my-body-is-amazing_B0H2S2P494_0706c5d8.jpg",
     featured: false,
   },
@@ -307,7 +325,8 @@ const BOOKS: Book[] = [
       "Seasonal recipes and strategies to stabilize blood sugar and reduce inflammation. Optimize your nutrition seasonally to support your lab markers and overall health.",
     pages: 167,
     isbn: "979-8-88-654337-6",
-    amazonUrl: "https://www.amazon.com/s?k=bio+marker+buffet+seasonal+sonya+m",
+    amazonUrl: "https://www.amazon.com/dp/B0GX2X9KLG",
+    audibleUrl: "https://www.audible.com/pd/B0HLW8GHWF/?source_code=AUDFPWS0223189MWT-BK-ACX0-535144&ref=acx_bty_BK_ACX0_535144_rh_us",
     coverUrl: "/manus-storage/the-bio-marker-buffet-high-protein-eating_B0GX2WG8W2_ff93b419.jpg",
     featured: true,
     sampleExcerpt:
@@ -324,11 +343,51 @@ const BOOKS: Book[] = [
     pages: 142,
     isbn: "979-8-88-654340-0",
     amazonUrl: "https://www.amazon.com/Everyday-Life-Artificial-Intelligence-Productivity-ebook/dp/B0GX2WRFBF",
+    audibleUrl: "https://www.audible.com/pd/B0HK1JNV28/?source_code=AUDFPWS0223189MWT-BK-ACX0-529687&ref=acx_bty_BK_ACX0_529687_rh_us",
     coverUrl: "/manus-storage/ai-for-everyday-life_B0GX2WRFBF_385d6be2.jpg",
     featured: true,
     isNew: true,
     sampleExcerpt:
       "AI is not here to replace you — it is here to amplify you. Whether you want to save hours on repetitive tasks, write better emails, or simply understand what everyone is talking about, this guide meets you where you are...",
+  },
+  {
+    id: "blood-sugar-blueprint-after-40",
+    title: "The Blood Sugar Blueprint After 40",
+    subtitle: "A Lab-Guided Plan to Stabilize Your Blood Sugar",
+    author: "Sonya M.",
+    category: "Health Education",
+    description:
+      "Understand glucose, A1C, and insulin resistance after 40, and build a practical, lab-guided plan to stabilize your blood sugar for good.",
+    amazonUrl: "https://www.amazon.com/dp/B0H6RPCMTP",
+    audibleUrl: "https://www.audible.com/pd/B0HJFK68YL/?source_code=AUDFPWS0223189MWT-BK-ACX0-530955&ref=acx_bty_BK_ACX0_530955_rh_us",
+    coverUrl: "https://images-na.ssl-images-amazon.com/images/P/B0H6RPCMTP.01._SX480_.jpg",
+    featured: false,
+  },
+  {
+    id: "managing-the-long-haul",
+    title: "Managing the Long Haul",
+    subtitle: "Using AI to Take Control of Chronic Conditions",
+    author: "Sonya M.",
+    category: "AI & Technology",
+    description:
+      "Use AI to track symptoms, understand your medical data, and take control of chronic conditions. A practical guide for the long haul.",
+    amazonUrl: "https://www.amazon.com/dp/B0H4Q6K14L",
+    audibleUrl: "https://www.audible.com/pd/B0HLVH9V2N/?source_code=AUDFPWS0223189MWT-BK-ACX0-535088&ref=acx_bty_BK_ACX0_535088_rh_us",
+    coverUrl: "https://images-na.ssl-images-amazon.com/images/P/B0H4Q6K14L.01._SX480_.jpg",
+    featured: false,
+  },
+  {
+    id: "your-health-changing-world",
+    title: "Your Health in This Changing World",
+    subtitle: "A Clinical Laboratory Scientist's Guide to Staying Well Through New Risks, New Technology, and New Science",
+    author: "Sonya M.",
+    category: "Health Education",
+    description:
+      "A Clinical Laboratory Scientist's guide to staying well through new risks, new technology, and new science.",
+    amazonUrl: "https://www.amazon.com/dp/B0HMMRQP68",
+    coverUrl: "https://images-na.ssl-images-amazon.com/images/P/B0HMMRQP68.01._SX480_.jpg",
+    featured: false,
+    isNew: true,
   },
 ];
 const CATEGORIES = [
@@ -391,6 +450,16 @@ function SampleModal({ book, onClose }: { book: Book; onClose: () => void }) {
             <ExternalLink className="w-4 h-4" />
             View on Amazon
           </Button>
+          {book.audibleUrl && (
+            <Button
+              variant="outline"
+              className="border-[#D48C70]/40 text-[#B86F53] hover:bg-[#D48C70]/10 rounded-xl text-sm font-semibold flex items-center gap-1.5"
+              onClick={() => window.open(book.audibleUrl, "_blank", "noopener")}
+            >
+              <Headphones className="w-4 h-4" />
+              Audible
+            </Button>
+          )}
           <Button
             variant="outline"
             className="border-[#EBE6DC] hover:bg-[#F5F1E9] rounded-xl text-sm font-semibold"
@@ -441,6 +510,12 @@ function BookCardGrid({ book, onReadSample }: { book: Book; onReadSample: (b: Bo
               New
             </div>
           )}
+          {book.audibleUrl && (
+            <div className="bg-[#2C2A29]/80 text-white text-[9px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider flex items-center gap-1">
+              <Headphones className="w-2.5 h-2.5" />
+              Audiobook
+            </div>
+          )}
         </div>
       </div>
 
@@ -466,13 +541,17 @@ function BookCardGrid({ book, onReadSample }: { book: Book; onReadSample: (b: Bo
 
         <p className="text-xs text-[#5C5A59] leading-relaxed line-clamp-3 flex-grow">{book.description}</p>
 
-        <div className="flex items-center gap-3 text-[10px] text-[#9E9A90] font-medium border-t border-[#EBE6DC] pt-3">
-          <span className="flex items-center gap-1">
-            <BookOpen className="w-3 h-3" />
-            {book.pages} pages
-          </span>
-          <span className="truncate">ISBN: {book.isbn}</span>
-        </div>
+        {book.audibleUrl && (
+          <a
+            href={book.audibleUrl}
+            target="_blank"
+            rel="sponsored noopener noreferrer"
+            className="flex items-center justify-center gap-1.5 rounded-xl border border-[#D48C70]/40 bg-[#FFF9F5] py-2 text-[11px] font-semibold text-[#B86F53] hover:bg-[#D48C70]/10 transition-colors"
+          >
+            <Headphones className="w-3.5 h-3.5" />
+            Listen on Audible
+          </a>
+        )}
 
         <div className="flex gap-2">
           <Button
@@ -563,12 +642,18 @@ function BookCardList({ book, onReadSample }: { book: Book; onReadSample: (b: Bo
         <p className="text-xs text-[#5C5A59] leading-relaxed line-clamp-2">{book.description}</p>
 
         <div className="flex items-center justify-between gap-3 mt-auto">
-          <div className="flex items-center gap-3 text-[10px] text-[#9E9A90] font-medium">
-            <span className="flex items-center gap-1">
-              <BookOpen className="w-3 h-3" />
-              {book.pages} pages
-            </span>
-            <span className="hidden sm:block">ISBN: {book.isbn}</span>
+          <div className="flex items-center gap-3 text-[10px] font-medium">
+            {book.audibleUrl && (
+              <a
+                href={book.audibleUrl}
+                target="_blank"
+                rel="sponsored noopener noreferrer"
+                className="flex items-center gap-1 text-[#B86F53] hover:underline"
+              >
+                <Headphones className="w-3 h-3" />
+                Audiobook
+              </a>
+            )}
           </div>
           <div className="flex gap-2 shrink-0">
             <Button
