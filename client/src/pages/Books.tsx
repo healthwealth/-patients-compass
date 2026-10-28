@@ -317,7 +317,7 @@ const BOOKS: Book[] = [
   },
   {
     id: "bio-marker-buffet-seasonal",
-    title: "The Bio-Marker Buffet: Seasonal Stabilize Inflammation",
+    title: "The Bio-Marker Buffet: Seasonal Recipes to Stabilize Blood Sugar and Reduce Inflammation",
     subtitle: "Seasonal Recipes to Stabilize Blood Sugar and Reduce Inflammation",
     author: "Sonya M.",
     category: "Nutrition & Diet",
@@ -327,7 +327,7 @@ const BOOKS: Book[] = [
     isbn: "979-8-88-654337-6",
     amazonUrl: "https://www.amazon.com/dp/B0GX2X9KLG",
     audibleUrl: "https://www.audible.com/pd/B0HLW8GHWF/?source_code=AUDFPWS0223189MWT-BK-ACX0-535144&ref=acx_bty_BK_ACX0_535144_rh_us",
-    coverUrl: "/manus-storage/the-bio-marker-buffet-high-protein-eating_B0GX2WG8W2_ff93b419.jpg",
+    coverUrl: "https://images-na.ssl-images-amazon.com/images/P/B0GX2X9KLG.01._SX480_.jpg",
     featured: true,
     sampleExcerpt:
       "Seasonal eating is not just a trend — it is a science-backed strategy for optimizing your biomarkers throughout the year. Each season brings different nutritional needs...",
