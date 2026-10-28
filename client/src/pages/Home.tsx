@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useMemo, useRef } from "react";
+import { withAmazonTag } from "@/lib/amazon";
 import SEO from "@/components/SEO";
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/_core/hooks/useAuth";
@@ -2450,7 +2451,7 @@ export default function Home() {
                 </div>
               </div>
               <div className="space-y-3">
-                <Button className="w-full bg-[#7E9A85] hover:bg-[#6A8571] text-white py-5 rounded-xl text-sm font-semibold flex items-center justify-center gap-2" onClick={() => window.open("https://www.amazon.com/dp/B0H1N9N7H8", "_blank")}>
+                <Button className="w-full bg-[#7E9A85] hover:bg-[#6A8571] text-white py-5 rounded-xl text-sm font-semibold flex items-center justify-center gap-2" onClick={() => window.open(withAmazonTag("https://www.amazon.com/dp/B0H1N9N7H8"), "_blank")}>
                   <span>Order on Amazon</span>
                   <ArrowRight className="w-4 h-4" />
                 </Button>
@@ -2479,7 +2480,7 @@ export default function Home() {
                 </div>
               </div>
               <div className="space-y-3">
-                <Button className="w-full bg-[#D48C70] hover:bg-[#C27A5B] text-white py-5 rounded-xl text-sm font-semibold flex items-center justify-center gap-2" onClick={() => window.open("https://www.amazon.com/s?k=the+patients+compass+Sonya+M+lab+results", "_blank")}>
+                <Button className="w-full bg-[#D48C70] hover:bg-[#C27A5B] text-white py-5 rounded-xl text-sm font-semibold flex items-center justify-center gap-2" onClick={() => window.open(withAmazonTag("https://www.amazon.com/s?k=the+patients+compass+Sonya+M+lab+results"), "_blank")}>
                   <span>Explore on Amazon</span>
                   <ArrowRight className="w-4 h-4" />
                 </Button>
@@ -2771,7 +2772,7 @@ export default function Home() {
               ].map((book, idx) => (
                 <a
                   key={book.id}
-                  href={book.url}
+                  href={withAmazonTag(book.url)}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="group flex-none w-44 snap-start"

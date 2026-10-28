@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { withAmazonTag } from "@/lib/amazon";
 import SEO from "@/components/SEO";
 import { useParams, Link } from "wouter";
 import { Badge } from "@/components/ui/badge";
@@ -389,7 +390,7 @@ export default function BiomarkerDetail() {
             <div className="flex gap-3 pt-2">
               <Button
                 className="bg-[#7E9A85] hover:bg-[#6A8571] text-white rounded-xl text-sm font-semibold flex items-center gap-2"
-                onClick={() => window.open("https://www.amazon.com/dp/B0H1N9N7H8", "_blank")}
+                onClick={() => window.open(withAmazonTag("https://www.amazon.com/dp/B0H1N9N7H8"), "_blank")}
               >
                 <span>Get the Book on Amazon</span>
                 <ChevronRight className="w-4 h-4" />

@@ -1,4 +1,5 @@
 import SEO from "@/components/SEO";
+import { withAmazonTag } from "@/lib/amazon";
 import React, { useState, useMemo } from "react";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
@@ -385,7 +386,7 @@ function SampleModal({ book, onClose }: { book: Book; onClose: () => void }) {
         <div className="flex gap-3">
           <Button
             className="flex-grow bg-[#7E9A85] hover:bg-[#6A8571] text-white rounded-xl py-5 text-sm font-semibold flex items-center justify-center gap-2"
-            onClick={() => window.open(book.amazonUrl, "_blank")}
+            onClick={() => window.open(withAmazonTag(book.amazonUrl), "_blank")}
           >
             <ExternalLink className="w-4 h-4" />
             View on Amazon
@@ -477,7 +478,7 @@ function BookCardGrid({ book, onReadSample }: { book: Book; onReadSample: (b: Bo
           <Button
             size="sm"
             className="flex-grow bg-[#7E9A85] hover:bg-[#6A8571] text-white rounded-xl text-[11px] font-semibold flex items-center justify-center gap-1.5 py-4"
-            onClick={() => window.open(book.amazonUrl, "_blank")}
+            onClick={() => window.open(withAmazonTag(book.amazonUrl), "_blank")}
           >
             <ExternalLink className="w-3 h-3" />
             View on Amazon
@@ -573,7 +574,7 @@ function BookCardList({ book, onReadSample }: { book: Book; onReadSample: (b: Bo
             <Button
               size="sm"
               className="bg-[#7E9A85] hover:bg-[#6A8571] text-white rounded-xl text-[11px] font-semibold flex items-center gap-1.5 py-3 px-3"
-              onClick={() => window.open(book.amazonUrl, "_blank")}
+              onClick={() => window.open(withAmazonTag(book.amazonUrl), "_blank")}
             >
               <ExternalLink className="w-3 h-3" />
               View on Amazon
@@ -927,7 +928,7 @@ export default function Books() {
               </p>
               <div className="flex flex-wrap gap-3 justify-center sm:justify-start pt-2">
                 <a
-                  href="https://www.amazon.com/stores/Sonya-M/author/B0GMBQCK7J/allbooks"
+                  href={withAmazonTag("https://www.amazon.com/stores/Sonya-M/author/B0GMBQCK7J/allbooks")}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-2 bg-[#7E9A85] hover:bg-[#6A8571] text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-colors shadow-sm"
