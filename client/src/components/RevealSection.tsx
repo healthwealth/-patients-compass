@@ -24,10 +24,13 @@ export function RevealSection({
 
   const baseTransition = `opacity 0.6s cubic-bezier(0.23, 1, 0.32, 1) ${delay}ms, transform 0.6s cubic-bezier(0.23, 1, 0.32, 1) ${delay}ms`;
 
+  // On phones a sideways start position pokes past the screen edge and lets the
+  // whole page wobble left and right, so narrow screens slide up instead.
+  const isNarrow = typeof window !== "undefined" && window.matchMedia("(max-width: 767px)").matches;
   const hiddenTransform = {
     up: "translateY(32px)",
-    left: "translateX(-32px)",
-    right: "translateX(32px)",
+    left: isNarrow ? "translateY(32px)" : "translateX(-32px)",
+    right: isNarrow ? "translateY(32px)" : "translateX(32px)",
     fade: "none",
   }[direction];
 
