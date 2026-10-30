@@ -1529,9 +1529,9 @@ export default function Home() {
                       <BookOpen className="w-4 h-4" />
                       <span>Ecosystem Foundation</span>
                     </div>
-                    <h3 className="text-xl font-serif font-bold">The Core Health Moat</h3>
+                    <h3 className="text-xl font-serif font-bold">More Than a Lab Reader</h3>
                     <p className="text-sm text-[#5C5A59] leading-relaxed">
-                      We go beyond simple OCR & interpretation. Our system integrates published educational books, physical printable health trackers, personalized wellness plans, and active physician-prep systems.
+                      We go beyond explaining your numbers. The Patient's Compass brings together published educational books, printable health trackers, personalized wellness plans, and tools to prepare for your doctor visits.
                     </p>
                   </div>
                 </div>
@@ -1700,7 +1700,7 @@ export default function Home() {
                     </div>
                     <h3 className="text-2xl font-serif font-semibold">Ready to map your bio-clues?</h3>
                     <p className="text-sm text-[#5C5A59]">
-                      This quick 1-minute assessment analyzes your daily energy, mood, and physiological signals to recommend precise diagnostic pathways.
+                      This quick 1-minute assessment looks at your daily energy, mood, and other signals to suggest lab markers that may be worth discussing with your doctor.
                     </p>
                   </div>
                   <Button className="bg-[#7E9A85] hover:bg-[#6A8571] text-white px-8 py-6 rounded-2xl text-base font-semibold" onClick={() => setQuizStep(1)}>
@@ -2013,7 +2013,7 @@ export default function Home() {
                       
                       {/* Optimal range overlay block */}
                       <div className="absolute inset-x-0 bottom-1/3 top-1/3 bg-[#7E9A85]/5 border-y border-dashed border-[#7E9A85]/20 flex items-center justify-center">
-                        <span className="text-[9px] text-[#7E9A85] font-semibold tracking-widest uppercase">Optimal Wellness Zone</span>
+                        <span className="hidden sm:inline text-[9px] text-[#7E9A85] font-semibold tracking-widest uppercase">Optimal Wellness Zone</span>
                       </div>
 
                       {/* Data Points */}
@@ -2121,12 +2121,12 @@ export default function Home() {
                 {/* Optimal vs Standard comparison */}
                 <div className="grid grid-cols-2 gap-4">
                   <div className="bg-white p-4 rounded-xl border border-[#EBE6DC] space-y-1">
-                    <span className="text-[10px] text-[#5C5A59] uppercase tracking-wider font-semibold">Standard Lab Range</span>
+                    <span className="block leading-tight text-[10px] text-[#5C5A59] uppercase tracking-wider font-semibold">Standard Lab Range</span>
                     <p className="text-lg font-serif font-bold text-[#5C5A59]">{activeBiomarker.normalRange}</p>
                     <p className="text-[10px] text-[#9E9A90]">Only flags severe disease or clinical deficiency.</p>
                   </div>
                   <div className="bg-white p-4 rounded-xl border border-[#D48C70]/30 space-y-1">
-                    <span className="text-[10px] text-[#D48C70] uppercase tracking-wider font-bold">Optimal Functional Range</span>
+                    <span className="block leading-tight text-[10px] text-[#D48C70] uppercase tracking-wider font-bold">Optimal Functional Range</span>
                     <p className="text-lg font-serif font-bold text-[#D48C70]">{activeBiomarker.optimalRange}</p>
                     <p className="text-[10px] text-[#D48C70]/80">Optimized for daily vitality and early longevity prevention.</p>
                   </div>
