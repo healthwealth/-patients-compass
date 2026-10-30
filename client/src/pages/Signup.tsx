@@ -581,15 +581,15 @@ export default function Signup() {
               <div className="flex gap-3">
                 <Shield className="w-5 h-5 text-[#7E9A85] flex-shrink-0 mt-1" />
                 <div>
-                  <p className="text-sm font-semibold text-[#2C2A29]">HIPAA Compliant</p>
-                  <p className="text-xs text-[#5C5A59]">Your health data is secure</p>
+                  <p className="text-sm font-semibold text-[#2C2A29]">Secure Connection</p>
+                  <p className="text-xs text-[#5C5A59]">Your information is encrypted in transit</p>
                 </div>
               </div>
               <div className="flex gap-3">
                 <Users className="w-5 h-5 text-[#7E9A85] flex-shrink-0 mt-1" />
                 <div>
-                  <p className="text-sm font-semibold text-[#2C2A29]">10,000+ Users</p>
-                  <p className="text-xs text-[#5C5A59]">Join our growing community</p>
+                  <p className="text-sm font-semibold text-[#2C2A29]">Built by a Lab Scientist</p>
+                  <p className="text-xs text-[#5C5A59]">20+ years of clinical lab experience</p>
                 </div>
               </div>
               <div className="flex gap-3">

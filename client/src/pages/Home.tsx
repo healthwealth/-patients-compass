@@ -611,37 +611,58 @@ export default function Home() {
     fileInputRef.current?.click();
   };
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (files && files.length > 0) {
-      const file = files[0];
-      setUploadedFile(file.name);
-      setUploadStep("scanning");
-      
-      // Read file content and send to AI for analysis
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        const text = event.target?.result as string;
-        if (text && text.length > 10) {
-          analyzeLabMutation.mutate({ text, fileName: file.name });
-        } else {
-          // File is not readable as text (e.g. binary PDF), use demo data
-          setTimeout(() => {
-            analyzeLabMutation.mutate({
-              text: `Lab Report Demo:\nFerritin: 24 ng/mL (Ref: 15-150)\nTSH: 3.4 mIU/L (Ref: 0.45-4.5)\nHbA1c: 5.4% (Ref: 4.0-5.6)\nVitamin D: 28 ng/mL (Ref: 30-100)\nhs-CRP: 2.1 mg/L (Ref: <3.0)`,
-              fileName: file.name
-            });
-          }, 500);
-        }
-      };
-      reader.onerror = () => {
-        // Fallback to demo analysis
-        analyzeLabMutation.mutate({
-          text: `Lab Report Demo:\nFerritin: 24 ng/mL (Ref: 15-150)\nTSH: 3.4 mIU/L (Ref: 0.45-4.5)\nHbA1c: 5.4% (Ref: 4.0-5.6)`,
-          fileName: file.name
+  // PDF and Word files are turned into text on the server (same reader as the
+  // Health Companion attachments); that needs a signed-in account.
+  const previewDocMutation = trpc.medicalAssistant.previewDocument.useMutation();
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+
+    const extension = file.name.toLowerCase().split(".").pop() ?? "";
+    const contentType =
+      extension === "txt" ? "text/plain"
+      : extension === "pdf" ? "application/pdf"
+      : extension === "docx" ? "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+      : null;
+    if (!contentType) {
+      toast.error("Choose a PDF, Word (DOCX) or TXT lab report.");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Choose a lab report no larger than 5 MB.");
+      return;
+    }
+    if (contentType !== "text/plain" && !isAuthenticated) {
+      toast("Sign in (free) to scan a PDF or Word lab report.");
+      window.location.href = getLoginUrl("/#upload-demo");
+      return;
+    }
+
+    setUploadedFile(file.name);
+    setUploadStep("scanning");
+    try {
+      let text: string;
+      if (contentType === "text/plain") {
+        text = await file.text();
+      } else {
+        const dataBase64 = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(String(reader.result).split(",")[1] ?? "");
+          reader.onerror = () => reject(reader.error);
+          reader.readAsDataURL(file);
         });
-      };
-      reader.readAsText(file);
+        const extracted = await previewDocMutation.mutateAsync({ fileName: file.name.slice(0, 180), contentType, dataBase64 });
+        text = extracted.text;
+      }
+      if (!text || text.trim().length < 10) {
+        throw new Error("No readable lab values were found in this file.");
+      }
+      analyzeLabMutation.mutate({ text: text.slice(0, 20000), fileName: file.name });
+    } catch (error) {
+      setUploadStep("idle");
+      toast.error(error instanceof Error && error.message ? error.message : "Could not read this file. Try a PDF, Word or TXT lab report.");
     }
   };
 
@@ -1454,7 +1475,7 @@ export default function Home() {
                   <p className="text-xs text-[#5C5A59] font-medium uppercase tracking-wider">Years Clinical Experience</p>
                 </div>
                 <div className="space-y-1">
-                  <p className="text-3xl font-serif font-bold text-[#D48C70]">19+</p>
+                  <p className="text-3xl font-serif font-bold text-[#D48C70]">20+</p>
                   <p className="text-xs text-[#5C5A59] font-medium uppercase tracking-wider">Published Books</p>
                 </div>
                 <div className="space-y-1">
@@ -1558,7 +1579,7 @@ export default function Home() {
               </Link>
             </div>
           </div>
-          <p className="mx-auto mt-6 max-w-3xl text-center text-xs leading-relaxed text-[#7A756E]">Patients Compass provides educational support and preparation tools. It does not diagnose, treat, or replace a licensed healthcare professional.</p>
+          <p className="mx-auto mt-6 max-w-3xl text-center text-xs leading-relaxed text-[#7A756E]">The Patient's Compass provides educational support and preparation tools. It does not diagnose, treat, or replace a licensed healthcare professional.</p>
         </div>
       </section>
       )}
@@ -1807,7 +1828,7 @@ export default function Home() {
               Try the AI Lab Report Scanner Demo
             </h2>
             <p className="text-base text-[#5C5A59] max-w-xl mx-auto">
-              Experience how our platform automatically parses your PDF, JPG, or text lab results and maps standard markers to functional medicine guidelines.
+              Experience how our platform reads your PDF, Word or text lab report and maps standard markers to functional medicine guidelines.
             </p>
           </RevealSection>
 
@@ -1826,19 +1847,19 @@ export default function Home() {
                       </div>
                       <div className="space-y-1">
                         <p className="font-semibold text-sm">Upload Your Lab Report</p>
-                        <p className="text-xs text-[#9E9A90]">Supports PDF, JPG, PNG or TXT files</p>
+                        <p className="text-xs text-[#9E9A90]">PDF, Word (DOCX) or TXT · up to 5 MB</p>
                       </div>
                     </div>
                     <input 
                       type="file" 
                       ref={fileInputRef} 
                       onChange={handleFileUpload} 
-                      accept=".pdf,.jpg,.jpeg,.png,.txt" 
+                      accept=".pdf,.docx,.txt"
                       className="hidden" 
                     />
                     <div className="flex items-center justify-center gap-2 text-xs text-[#9E9A90] font-semibold">
                       <ShieldCheck className="w-4 h-4 text-[#7E9A85]" />
-                      <span>HIPAA-aligned & 100% Secure Local Parsing</span>
+                      <span>Sent over a secure connection · educational summary only</span>
                     </div>
                   </div>
                 )}
@@ -2059,7 +2080,7 @@ export default function Home() {
             <div className="lg:col-span-7 space-y-6">
               <Card className="border border-[#EBE6DC] shadow-md rounded-3xl bg-white p-6 sm:p-8 space-y-6">
                 <div className="space-y-2">
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center">
                     <Badge className="bg-[#7E9A85]/10 hover:bg-[#7E9A85]/10 text-[#7E9A85] border-none text-[10px] font-semibold">{activeBiomarker.category}</Badge>
                     <h3 className="text-2xl font-serif font-bold">{activeBiomarker.name}</h3>
                   </div>
@@ -2083,10 +2104,11 @@ export default function Home() {
                       className="w-full h-2 bg-[#EBE6DC] rounded-lg appearance-none cursor-pointer accent-[#7E9A85]"
                     />
                     <div className="flex justify-between text-[10px] font-bold text-[#9E9A90] uppercase tracking-wider">
-                      <span>5 (Very Low)</span>
-                      <span>50 (Optimal Start)</span>
-                      <span>100 (Optimal End)</span>
-                      <span>160 (Very High)</span>
+                      {/* Words are hidden on phones, where four long labels would crowd into three lines. */}
+                      <span>5<span className="hidden sm:inline"> (Very Low)</span></span>
+                      <span>50<span className="hidden sm:inline"> (Optimal Start)</span></span>
+                      <span>100<span className="hidden sm:inline"> (Optimal End)</span></span>
+                      <span>160<span className="hidden sm:inline"> (Very High)</span></span>
                     </div>
                   </div>
 
@@ -2261,7 +2283,7 @@ export default function Home() {
                       </div>
                       <div className="space-y-1 max-w-xs">
                         <p className="font-bold text-lg text-[#2C2A29]">Generate Your Letter</p>
-                        <p className="text-xs text-[#5C5A59] font-sans">Fill in the fields on the left to live-preview your professional prep-sheet.</p>
+                        <p className="text-xs text-[#5C5A59] font-sans">Fill in the form to live-preview your professional prep-sheet.</p>
                       </div>
                     </div>
                   ) : null}
@@ -2367,7 +2389,7 @@ export default function Home() {
                   <BookOpen className="w-5 h-5 text-[#D48C70] shrink-0 mt-0.5" />
                   <div>
                     <h5 className="font-bold text-sm text-[#2C2A29]">Published Author</h5>
-                    <p className="text-xs text-[#9E9A90]">2 best-selling health literacy manuals.</p>
+                    <p className="text-xs text-[#9E9A90]">20+ published health books.</p>
                   </div>
                 </div>
               </div>
@@ -2592,7 +2614,7 @@ export default function Home() {
                   Get Your Free Biomarker & Lab Tracker PDF
                 </h3>
                 <p className="text-sm text-[#5C5A59] leading-relaxed">
-                  Join 10,000+ patients using our certified Clinical Laboratory Scientist templates to track trends, log daily symptoms, and optimize their functional health.
+                  Use free templates created by a Clinical Laboratory Scientist to track trends, log daily symptoms, and prepare for your next doctor visit.
                 </p>
                 <ul className="space-y-2 text-xs text-[#5C5A59] font-medium">
                   <li className="flex items-center gap-2">
@@ -2741,7 +2763,7 @@ export default function Home() {
                   Books That Educate &amp; Empower
                 </h2>
                 <p className="text-[#5C5A59] max-w-xl">
-                  19+ titles spanning lab science, nutrition, wellness, children's health, and AI — written by a Clinical Laboratory Scientist with 20+ years of experience.
+                  20+ titles spanning lab science, nutrition, wellness, children's health, and AI — written by a Clinical Laboratory Scientist with 20+ years of experience.
                 </p>
               </div>
               <Link
@@ -2889,7 +2911,8 @@ export default function Home() {
             )}
           </div>
 
-          <div className="flex flex-col sm:flex-row justify-between items-center gap-4 text-[10px] text-[#9E9A90] uppercase tracking-wider font-semibold">
+          {/* Bottom padding on phones keeps this line clear of the floating chat button. */}
+          <div className="flex flex-col sm:flex-row justify-between items-center gap-4 pb-20 sm:pb-0 text-center sm:text-left text-[11px] text-[#9E9A90] uppercase tracking-wider font-semibold">
             <p>© {new Date().getFullYear()} The Patient's Compass Health Intelligence System. All rights reserved.</p>
             <p>Educational Content Only — Not Medical Advice</p>
           </div>
