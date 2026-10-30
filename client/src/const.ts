@@ -162,7 +162,7 @@ export const CASE_STUDIES: CaseStudy[] = [
     clinicalNormal: "22 ng/mL (Normal: 15-150)",
     optimalWellness: "50-100 ng/mL",
     symptoms: "Severe afternoon fatigue, hair thinning, brittle nails, cold hands.",
-    resolution: "Though flagged as 'normal', her ferritin was insufficient for optimal cell function. Increasing iron stores to 65 ng/mL resolved her chronic fatigue completely.",
+    resolution: "Her ferritin was inside the lab's reference range but low for how she felt. After she discussed it with her doctor, her iron stores rose to 65 ng/mL and her energy improved.",
     quote: "I was told my labs were 'perfect' for two years. Understanding the functional range changed everything."
   },
   {
@@ -171,7 +171,7 @@ export const CASE_STUDIES: CaseStudy[] = [
     clinicalNormal: "3.8 mIU/L (Normal: 0.45-4.5)",
     optimalWellness: "1.0-2.5 mIU/L",
     symptoms: "Sluggishness, brain fog, difficulty losing weight despite strict diet.",
-    resolution: "A standard screen missed her early subclinical hypothyroid state. Targeted nutrition and lifestyle changes brought TSH to 1.8, lifting her brain fog and boosting metabolism.",
+    resolution: "Her TSH was inside the standard range, but its upward trend led to a thyroid follow-up conversation with her doctor. With her doctor's plan plus nutrition and lifestyle changes, her TSH later measured 1.8 and her brain fog eased.",
     quote: "Our doctor was able to have a highly targeted discussion once we presented the TSH functional trends."
   },
   {
@@ -180,7 +180,7 @@ export const CASE_STUDIES: CaseStudy[] = [
     clinicalNormal: "5.6% (Normal: 4.0-5.6)",
     optimalWellness: "4.6-5.3%",
     symptoms: "Intense post-meal sugar cravings, mid-day energy crashes, abdominal fat.",
-    resolution: "At 5.6%, she was just 0.1% away from clinical prediabetes. Catching this trend early allowed lifestyle adjustments that lowered her HbA1c to 5.0%, preventing diabetes progression.",
+    resolution: "At 5.6%, her HbA1c was 0.1% below the prediabetes cutoff. Spotting the trend early led to lifestyle changes, agreed with her doctor, that brought it down to 5.0%.",
     quote: "The trend tracking caught my blood sugar rise long before my standard physical would have flagged it."
   }
 ];

@@ -64,7 +64,7 @@ import {
   Volume2,
   VolumeX
 } from "lucide-react";
-import { BIOMARKERS, COMPETITORS, CASE_STUDIES, IMAGES, BOOK_EXCERPTS } from "../const";
+import { BIOMARKERS, CASE_STUDIES, IMAGES, BOOK_EXCERPTS } from "../const";
 import { toast } from "sonner";
 import { exportDoctorLetterPDF } from "@/lib/pdfExport";
 
@@ -189,7 +189,7 @@ export default function Home() {
     { href: "#biomarkers", label: "Optimal Ranges" },
     { href: "#letter", label: "Doctor Prep" },
     { href: "#authority", label: "Our Authority" },
-    { href: "#cases", label: "Case Studies" },
+    { href: "#cases", label: "Examples" },
   ];
 
   const resourceLinks = [
@@ -2403,13 +2403,13 @@ export default function Home() {
         <div className="container max-w-6xl mx-auto px-4">
           <RevealSection direction="up" className="text-center space-y-4 mb-16">
             <Badge className="bg-[#D48C70]/10 hover:bg-[#D48C70]/10 text-[#D48C70] border-none px-3 py-1 rounded-full text-xs font-semibold">
-              Clinical Examples
+              Illustrative Examples
             </Badge>
             <h2 className="text-3xl sm:text-4xl font-serif font-bold text-[#2C2A29]">
-              Real Cases: Why "Normal" Isn't Always Optimal
+              Examples: Why "Normal" Isn't Always Optimal
             </h2>
             <p className="text-base text-[#5C5A59] max-w-xl mx-auto">
-              Explore real-world examples of how tracking functional ranges and subtle biomarker trends helped patients find answers.
+              Composite examples, not real patients, showing how tracking functional ranges and subtle biomarker trends can lead to a better conversation with your doctor.
             </p>
           </RevealSection>
 
@@ -2418,7 +2418,7 @@ export default function Home() {
               <Card key={idx} className="border border-[#EBE6DC] shadow-sm rounded-3xl bg-white p-6 hover:shadow-md transition-all duration-200 flex flex-col justify-between space-y-6">
                 <div className="space-y-4">
                   <div className="space-y-1">
-                    <Badge className="bg-[#7E9A85]/10 text-[#7E9A85] border-none text-[10px] font-semibold mb-1">Case #{idx+1}</Badge>
+                    <Badge className="bg-[#7E9A85]/10 text-[#7E9A85] border-none text-[10px] font-semibold mb-1">Example {idx+1}</Badge>
                     <h3 className="font-serif font-bold text-xl text-[#2C2A29]">{caseStudy.title}</h3>
                   </div>
 
@@ -2431,10 +2431,6 @@ export default function Home() {
                   </div>
                 </div>
 
-                <div className="bg-[#F9F6F0] p-4 rounded-2xl border border-[#EBE6DC]/60 italic text-xs text-[#5C5A59] relative">
-                  <span className="absolute top-2 left-2 text-2xl text-[#7E9A85]/20 font-serif leading-none">“</span>
-                  <p className="pl-4">{caseStudy.quote}</p>
-                </div>
               </Card>
             ))}
           </div>
@@ -2681,71 +2677,6 @@ export default function Home() {
             </CardContent>
           </Card>
           </RevealSection>
-        </div>
-      </section>
-
-      {/* 9. Competitive Matrix Section */}
-      <section id="comparison" className="py-20 bg-white border-b border-[#EBE6DC]">
-        <div className="container max-w-6xl mx-auto px-4">
-          <RevealSection direction="up" className="text-center space-y-4 mb-16">
-            <Badge className="bg-[#7E9A85]/10 hover:bg-[#7E9A85]/10 text-[#7E9A85] border-none px-3 py-1 rounded-full text-xs font-semibold">
-              Market Positioning
-            </Badge>
-            <h2 className="text-3xl sm:text-4xl font-serif font-bold text-[#2C2A29]">
-              How We Position in the 2026 AI Health Landscape
-            </h2>
-            <p className="text-base text-[#5C5A59] max-w-xl mx-auto">
-              The Patient's Compass is uniquely positioned to bridge the gap between patient literacy, evidence-based books, and structured physician conversations.
-            </p>
-          </RevealSection>
-
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {COMPETITORS.map((competitor, idx) => (
-              <Card 
-                key={idx} 
-                className={`border rounded-3xl p-6 flex flex-col justify-between space-y-6 shadow-sm hover:shadow-md transition-all duration-200 ${
-                  competitor.name.includes("The Patient's Compass") 
-                    ? "border-[#7E9A85] bg-[#7E9A85]/5 shadow-[#7E9A85]/10" 
-                    : "border-[#EBE6DC] bg-white"
-                }`}
-              >
-                <div className="space-y-4">
-                  <div className="flex justify-between items-start">
-                    <h3 className="font-serif font-bold text-xl text-[#2C2A29]">{competitor.name}</h3>
-                    <Badge className={`text-[10px] font-bold border-none px-2.5 py-0.5 rounded-full ${
-                      competitor.name.includes("The Patient's Compass") 
-                        ? "bg-[#7E9A85] text-white" 
-                        : "bg-[#EBE6DC] text-[#5C5A59]"
-                    }`}>
-                      {competitor.badge}
-                    </Badge>
-                  </div>
-                  
-                  <div className="space-y-2 text-xs">
-                    <p className="text-[#5C5A59] leading-relaxed"><strong className="text-[#2C2A29] font-semibold">Target Audience:</strong> {competitor.targetAudience}</p>
-                    <p className="text-[#5C5A59] leading-relaxed"><strong className="text-[#2C2A29] font-semibold">Pricing:</strong> {competitor.pricingModel}</p>
-                    <p className="text-[#5C5A59] leading-relaxed"><strong className="text-[#2C2A29] font-semibold">Privacy/Safety:</strong> {competitor.privacySafety}</p>
-                  </div>
-
-                  <div className="space-y-1.5 border-t border-[#EBE6DC] pt-4">
-                    <p className="text-[10px] font-bold text-[#7E9A85] uppercase tracking-wider">Key Capabilities:</p>
-                    <ul className="space-y-1 text-xs text-[#5C5A59] font-medium">
-                      {competitor.keyFeatures.map((f, i) => (
-                        <li key={i} className="flex items-center gap-1.5">
-                          <CheckCircle2 className="w-3.5 h-3.5 text-[#7E9A85] shrink-0" />
-                          <span>{f}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                </div>
-
-                <div className="border-t border-[#EBE6DC] pt-4 text-xs italic text-[#5C5A59] leading-relaxed">
-                  {competitor.marketPositioning}
-                </div>
-              </Card>
-            ))}
-          </div>
         </div>
       </section>
 
