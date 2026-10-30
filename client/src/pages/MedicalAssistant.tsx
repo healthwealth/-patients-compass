@@ -923,7 +923,7 @@ export default function MedicalAssistant() {
                   placeholder={
                     isLimitReached
                       ? "Upgrade to Pro for unlimited queries..."
-                      : `Ask Health Companion anything about ${currentMode.label.toLowerCase()}...`
+                      : `Ask about ${currentMode.label.toLowerCase()}...`
                   }
                   rows={1}
                   className="flex-1 resize-none rounded-xl border border-[#EBE6DC] bg-[#F9F6F0] px-4 py-3 text-sm text-[#2C2A29] placeholder:text-[#9E9A90] focus:outline-none focus:border-[#7E9A85] transition-colors leading-relaxed"
@@ -961,7 +961,7 @@ export default function MedicalAssistant() {
                   )}
                 </button>
                 </div>
-                <p className="mt-2 text-center text-[10px] text-[#B0AAA1]">TXT, DOCX, or text-based PDF · 5 MB max · processed for this question only.</p>
+                <p className="mt-2 text-center text-[11px] text-[#9E9A90]">Attached files are used for this question only.</p>
               </div>
             )}
 

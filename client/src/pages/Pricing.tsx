@@ -322,17 +322,17 @@ export default function Pricing() {
                   <p className="text-xs text-[#9E9A90] font-medium">Full health intelligence system</p>
                 </div>
               </div>
-              <div className="flex items-end gap-1">
+              <div className="flex flex-wrap items-end gap-x-1 gap-y-2">
                 {billingCycle === "monthly" ? (
                   <>
                     <span className="text-4xl font-serif font-bold text-[#2C2A29]">$9</span>
-                    <span className="text-sm text-[#9E9A90] mb-1">/ month</span>
+                    <span className="whitespace-nowrap text-sm text-[#9E9A90] mb-1">/ month</span>
                   </>
                 ) : (
                   <>
                     <span className="text-4xl font-serif font-bold text-[#2C2A29]">$99.99</span>
-                    <span className="text-sm text-[#9E9A90] mb-1">/ year</span>
-                    <span className="ml-2 text-xs text-[#D48C70] font-bold bg-[#D48C70]/10 px-2 py-0.5 rounded-full">
+                    <span className="whitespace-nowrap text-sm text-[#9E9A90] mb-1">/ year</span>
+                    <span className="ml-2 mb-1 whitespace-nowrap text-xs text-[#D48C70] font-bold bg-[#D48C70]/10 px-2 py-0.5 rounded-full">
                       Save $8.01/yr
                     </span>
                   </>

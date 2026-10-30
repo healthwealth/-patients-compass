@@ -546,17 +546,17 @@ function BookCardGrid({ book, onReadSample }: { book: Book; onReadSample: (b: Bo
             href={book.audibleUrl}
             target="_blank"
             rel="sponsored noopener noreferrer"
-            className="flex items-center justify-center gap-1.5 rounded-xl border border-[#D48C70]/40 bg-[#FFF9F5] py-2 text-[11px] font-semibold text-[#B86F53] hover:bg-[#D48C70]/10 transition-colors"
+            className="flex items-center justify-center gap-1.5 rounded-xl border border-[#D48C70]/40 bg-[#FFF9F5] py-2 text-xs font-semibold text-[#B86F53] hover:bg-[#D48C70]/10 transition-colors"
           >
             <Headphones className="w-3.5 h-3.5" />
             Listen on Audible
           </a>
         )}
 
-        <div className="flex gap-2">
+        <div className="grid gap-2">
           <Button
             size="sm"
-            className="flex-grow bg-[#7E9A85] hover:bg-[#6A8571] text-white rounded-xl text-[11px] font-semibold flex items-center justify-center gap-1.5 py-4"
+            className="w-full bg-[#7E9A85] hover:bg-[#6A8571] text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 py-4"
             onClick={() => window.open(withAmazonTag(book.amazonUrl), "_blank")}
           >
             <ExternalLink className="w-3 h-3" />
@@ -565,7 +565,7 @@ function BookCardGrid({ book, onReadSample }: { book: Book; onReadSample: (b: Bo
           <Button
             size="sm"
             variant="outline"
-            className="border-[#EBE6DC] hover:bg-[#F5F1E9] rounded-xl text-[11px] font-semibold py-4"
+            className="w-full border-[#EBE6DC] hover:bg-[#F5F1E9] rounded-xl text-xs font-semibold py-4"
             onClick={() => onReadSample(book)}
           >
             Read Sample
@@ -641,8 +641,8 @@ function BookCardList({ book, onReadSample }: { book: Book; onReadSample: (b: Bo
 
         <p className="text-xs text-[#5C5A59] leading-relaxed line-clamp-2">{book.description}</p>
 
-        <div className="flex items-center justify-between gap-3 mt-auto">
-          <div className="flex items-center gap-3 text-[10px] font-medium">
+        <div className="flex flex-wrap items-center justify-between gap-2 mt-auto">
+          <div className="flex items-center gap-3 text-[11px] font-medium">
             {book.audibleUrl && (
               <a
                 href={book.audibleUrl}
@@ -655,7 +655,7 @@ function BookCardList({ book, onReadSample }: { book: Book; onReadSample: (b: Bo
               </a>
             )}
           </div>
-          <div className="flex gap-2 shrink-0">
+          <div className="flex flex-wrap gap-2">
             <Button
               size="sm"
               className="bg-[#7E9A85] hover:bg-[#6A8571] text-white rounded-xl text-[11px] font-semibold flex items-center gap-1.5 py-3 px-3"

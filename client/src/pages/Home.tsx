@@ -2748,7 +2748,7 @@ export default function Home() {
                 href="/books"
                 className="hidden md:flex items-center gap-2 text-[#7E9A85] font-semibold hover:text-[#6A8571] transition-colors whitespace-nowrap"
               >
-                View All 19 Books
+                View All Books
                 <ArrowRight className="w-4 h-4" />
               </Link>
             </div>
@@ -2814,7 +2814,7 @@ export default function Home() {
                 href="/books"
                 className="inline-flex items-center gap-2 text-[#7E9A85] font-semibold hover:text-[#6A8571] transition-colors"
               >
-                View All 19 Books
+                View All Books
                 <ArrowRight className="w-4 h-4" />
               </Link>
             </div>

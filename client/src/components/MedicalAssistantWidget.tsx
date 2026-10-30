@@ -676,7 +676,7 @@ export default function MedicalAssistantWidget() {
 
       {/* ── Widget panel ── */}
       <div
-        className={`fixed bottom-28 right-6 z-50 w-[380px] max-w-[calc(100vw-1.5rem)] bg-[#F3EBDD] rounded-2xl shadow-[0_24px_70px_rgba(44,42,41,.28)] border border-[#C9BFAF] flex flex-col overflow-hidden transition-all duration-300 origin-bottom-right ${
+        className={`fixed bottom-24 right-3 sm:bottom-28 sm:right-6 z-50 w-[380px] max-w-[calc(100vw-1.5rem)] bg-[#F3EBDD] rounded-2xl shadow-[0_24px_70px_rgba(44,42,41,.28)] border border-[#C9BFAF] flex flex-col overflow-hidden transition-all duration-300 origin-bottom-right ${
           isOpen
             ? "opacity-100 scale-100 pointer-events-auto"
             : "opacity-0 scale-95 pointer-events-none"
@@ -1090,7 +1090,7 @@ export default function MedicalAssistantWidget() {
                 )}
               </button>
               </div>
-              <p className="mt-2 text-[9px] leading-tight text-[#B0AAA1]">TXT, DOCX, or text-based PDF · 5 MB max · processed for this question only, not saved with chat history.</p>
+              <p className="mt-2 text-[11px] leading-tight text-[#9E9A90]">Attached files are used for this question only, not saved with chat history.</p>
             </div>
           )}
 

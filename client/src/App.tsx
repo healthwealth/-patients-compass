@@ -283,13 +283,28 @@ function App() {
               <Router />
             </div>
           </div>
-          <MedicalAssistantWidget />
-          <SupportChatWidget />
+          <FloatingChatWidgets />
           <SessionTimeoutWarning />
           <CookieConsent />
         </TooltipProvider>
       </ThemeProvider>
     </ErrorBoundary>
+  );
+}
+
+/**
+ * The floating chat bubbles, hidden on the full-page assistant where they
+ * would repeat it and cover its Send button on phones.
+ */
+function FloatingChatWidgets() {
+  const [location] = useLocation();
+  // Kept mounted (just hidden) so an open widget conversation survives a visit to that page.
+  const hidden = location.startsWith("/medical-assistant");
+  return (
+    <div className={hidden ? "hidden" : undefined}>
+      <MedicalAssistantWidget />
+      <SupportChatWidget />
+    </div>
   );
 }
 
