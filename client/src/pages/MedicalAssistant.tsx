@@ -39,6 +39,13 @@ import { useDocumentAttachment } from "@/hooks/useDocumentAttachment";
 
 type Mode = "health_assistant" | "lab_analyzer" | "nutrition_coach";
 
+/** Short enough to stay on one line on a phone. */
+const INPUT_PLACEHOLDERS: Record<Mode, string> = {
+  health_assistant: "Ask a health question...",
+  lab_analyzer: "Ask about your lab results...",
+  nutrition_coach: "Ask about nutrition...",
+};
+
 interface Message {
   id: string;
   role: "user" | "assistant";
@@ -923,7 +930,7 @@ export default function MedicalAssistant() {
                   placeholder={
                     isLimitReached
                       ? "Upgrade to Pro for unlimited queries..."
-                      : `Ask about ${currentMode.label.toLowerCase()}...`
+                      : INPUT_PLACEHOLDERS[currentMode.id as Mode] ?? "Ask a health question..."
                   }
                   rows={1}
                   className="flex-1 resize-none rounded-xl border border-[#EBE6DC] bg-[#F9F6F0] px-4 py-3 text-sm text-[#2C2A29] placeholder:text-[#9E9A90] focus:outline-none focus:border-[#7E9A85] transition-colors leading-relaxed"
